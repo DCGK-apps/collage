@@ -17,6 +17,13 @@ Edytor kolaży zdjęć działający w przeglądarce (telefon i komputer), z domy
 
 Cała geometria liczona jest w milimetrach strony, więc podgląd i eksport są identyczne niezależnie od rozdzielczości.
 
+## Wersja online
+
+Aplikacja jest publikowana na GitHub Pages pod adresem https://grzegorzka.github.io/collage/
+po każdym pushu do `main` (workflow `.github/workflows/pages.yml`).
+
+Jednorazowa konfiguracja: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
 ## Uruchomienie
 
 ```bash
