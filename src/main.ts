@@ -16,7 +16,7 @@ import {
   type Preset,
 } from './core/tree';
 import type { CellNode, Doc } from './core/types';
-import { Store, type Mode } from './store';
+import { Store, savePref, type Mode } from './store';
 import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderToCanvas } from './ui/export';
 import { loadDemoPhotos, loadFiles, type LoadedPhoto } from './ui/images';
 import { Stage, vibrate } from './ui/stage';
@@ -113,6 +113,16 @@ $$('.mode-btn').forEach((b) =>
     setMode(b.dataset.mode as Mode);
   }),
 );
+
+/* ================================================================ edge handles */
+
+function toggleHandles(): void {
+  store.ui.showHandles = !store.ui.showHandles;
+  savePref('showHandles', store.ui.showHandles);
+  toast(store.ui.showHandles ? 'Uchwyty krawędzi widoczne' : 'Uchwyty ukryte – krawędzie nadal można przeciągać');
+  store.notify();
+}
+$('#btn-handles').addEventListener('click', toggleHandles);
 
 /* ================================================================ header */
 
@@ -424,6 +434,10 @@ window.addEventListener('keydown', (e) => {
     store.redo();
     return;
   }
+  if (!mod && !e.altKey && e.key.toLowerCase() === 'h') {
+    toggleHandles();
+    return;
+  }
   if (e.key === 'Escape') {
     store.ui.selectedCellId = null;
     store.ui.selectedFloatId = null;
@@ -458,6 +472,8 @@ function renderControls(): void {
   const { doc, ui } = store;
   $$('.mode-btn').forEach((b) => b.classList.toggle('active', b.dataset.mode === ui.mode));
   $('#mode-hint').textContent = HINTS[ui.mode];
+  document.body.dataset.handles = ui.showHandles ? 'shown' : 'hidden';
+  $('#btn-handles').setAttribute('aria-pressed', String(ui.showHandles));
   $<HTMLButtonElement>('#btn-undo').disabled = !store.history.canUndo;
   $<HTMLButtonElement>('#btn-redo').disabled = !store.history.canRedo;
   $$('#format-chips .chip').forEach((c) => c.classList.toggle('active', c.dataset.format === doc.formatId));
