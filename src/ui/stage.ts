@@ -74,6 +74,7 @@ export class Stage {
     this.bindDividers();
     this.bindCells();
     this.bindFloats();
+    this.bindOutsideDismiss();
     new ResizeObserver(() => this.render()).observe(workspace);
   }
 
@@ -502,9 +503,25 @@ export class Stage {
       return;
     }
     ui.swapFromCellId = null;
-    ui.selectedCellId = ui.selectedCellId === id ? null : id;
+    // Tapping the selected tile again, or any other tile while one is
+    // selected, closes the menu. The next tap selects the new tile.
+    ui.selectedCellId = ui.selectedCellId ? null : id;
     vibrate(8);
     this.store.notify();
+  }
+
+  /** Close the cell menu on a press outside photos and the toolbar. */
+  private bindOutsideDismiss(): void {
+    this.workspace.addEventListener('pointerdown', (e) => {
+      const { ui } = this.store;
+      if (!ui.selectedCellId && !ui.swapFromCellId) return;
+      const t = e.target as HTMLElement;
+      if (t.closest('.cell, .toolbar, .divider')) return;
+      if (ui.mode === 'layers' && t.closest('.float')) return;
+      ui.selectedCellId = null;
+      ui.swapFromCellId = null;
+      this.store.notify();
+    });
   }
 
   /* ------------------------------------------------------------ floats */
