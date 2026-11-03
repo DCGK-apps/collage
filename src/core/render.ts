@@ -82,7 +82,7 @@ export function drawDoc(
     const p = photos.get(f.photoId);
     const img = images.get(f.photoId);
     if (!p || !img) continue;
-    const b = floatBox(f, p, page);
+    const b = floatBox(f, p, page, doc.style.gapMm);
     const w = b.w * k;
     const h = b.h * k;
     const fr = b.frame * k;
