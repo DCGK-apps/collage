@@ -13,11 +13,35 @@ export interface UiState {
   swapFromCellId: string | null;
   /** Move collinear edges together (table-like behaviour). */
   linkEdges: boolean;
+  /** Show the blue edge handles (edges stay draggable when hidden). */
+  showHandles: boolean;
   preset: Preset;
   exportDpi: number;
 }
 
 type Listener = () => void;
+
+const PREFS_KEY = 'collage.prefs';
+
+/** Per-browser preferences; storage may be unavailable (private mode), so never throw. */
+export function loadPref<T>(key: string, fallback: T): T {
+  try {
+    const v = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}')[key];
+    return v === undefined ? fallback : (v as T);
+  } catch {
+    return fallback;
+  }
+}
+
+export function savePref(key: string, value: unknown): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
+    all[key] = value;
+    localStorage.setItem(PREFS_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
+}
 
 /**
  * Single source of truth. `doc` is the undoable document; `ui` is transient.
@@ -32,6 +56,7 @@ export class Store {
     selectedFloatId: null,
     swapFromCellId: null,
     linkEdges: true,
+    showHandles: loadPref('showHandles', true),
     preset: 'grid',
     exportDpi: 300,
   };

@@ -149,7 +149,15 @@ body[data-mode='layers'] .cells-layer { opacity: 0.85; }
 .tool-btn:active, .tool-btn.on { background: var(--accent); color: #fff; }
 .tool-btn.danger { color: #fda4af; }
 .tool-val { font-size: 11px; font-weight: 700; min-width: 34px; text-align: center; }
-.hint { position: absolute; bottom: 4px; z-index: 40; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--muted); background: rgba(8, 12, 20, 0.7); padding: 4px 10px; border-radius: 99px; pointer-events: none; white-space: nowrap; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; }
+.hint { position: absolute; bottom: 4px; z-index: 40; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--muted); background: rgba(8, 12, 20, 0.7); padding: 4px 10px; border-radius: 99px; pointer-events: none; white-space: nowrap; max-width: calc(100% - 112px); overflow: hidden; text-overflow: ellipsis; }
+.float-btn { position: absolute; right: 8px; bottom: 4px; z-index: 41; width: 34px; height: 34px; background: rgba(11, 17, 30, 0.85); }
+body:not([data-mode='edges']) .float-btn { display: none; }
+.float-btn .eye-off, body[data-handles='hidden'] .float-btn .eye-on { display: none; }
+body[data-handles='hidden'] .float-btn .eye-off { display: inline; }
+body[data-handles='hidden'] .float-btn { color: #818cf8; border-color: var(--accent); }
+/* Hidden handles: edges stay draggable (cursor still changes); the line shows only while dragging. */
+body[data-handles='hidden'] .divider:not(.active) .pill { visibility: hidden; }
+body[data-handles='hidden'] .divider:not(.active)::before { opacity: 0; }
 
 /* ---------------------------------------------------------- sheet */
 #sheet { background: var(--bg-sheet); border-top: 1px solid var(--border); z-index: 45; flex-shrink: 0; box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4); }
