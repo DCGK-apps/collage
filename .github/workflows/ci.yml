@@ -18,6 +18,8 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      # Same suite with delayed animation frames – catches tests that measure the DOM before it re-rendered.
+      - run: npm run test:e2e:slow
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

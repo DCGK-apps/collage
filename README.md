@@ -38,6 +38,7 @@ npm run build      # dist/index.html – jeden samodzielny plik HTML
 npm run typecheck  # TypeScript
 npm test           # testy jednostkowe (Vitest) – logika układu, kadrowania, warstw, PDF
 npm run test:e2e   # testy E2E (Playwright) – desktop + telefon (dotyk)
+npm run test:e2e:slow  # te same testy przy celowo spowolnionych klatkach (wyłapuje niestabilne testy)
 npm run test:all   # wszystko
 ```
 

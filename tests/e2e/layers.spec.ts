@@ -93,11 +93,16 @@ test('the gap slider also sets the frame width of every layer', async ({ page })
   const before = await frames();
   await page.locator('.tab[data-tab="tab-style"]').click();
   await page.locator('#rng-gap').fill('12');
-  await expect.poll(async () => (await frames())[0]).toBeGreaterThan(before[0]!);
-  const after = await frames();
-  const scale = (await page.getByTestId('page').boundingBox())!.width / 210;
-  for (const w of after) expect(w).toBeCloseTo(12 * scale, 0);
-  expect(after[0]).toBeGreaterThan(before[0]!);
+  // Frame width vs. 12 mm at the current preview scale, measured in one go: opening the
+  // Style tab animates the bottom sheet, so the page scale may still be changing.
+  const mismatch = () =>
+    page.evaluate(() => {
+      const scale = document.querySelector('[data-testid="page"]')!.getBoundingClientRect().width / 210;
+      const ws = [...document.querySelectorAll('[data-testid="float"]')].map((e) => parseFloat(getComputedStyle(e).paddingLeft));
+      return Math.max(...ws.map((w) => Math.abs(w - 12 * scale)));
+    });
+  await expect.poll(mismatch).toBeLessThan(0.5);
+  expect((await frames())[0]).toBeGreaterThan(before[0]!);
   // Turning the frame off on one layer removes it only there.
   await page.getByTestId('float-toolbar').locator('[data-act="frame"]').click();
   await expect.poll(async () => (await frames()).filter((w) => w === 0).length).toBe(1);
