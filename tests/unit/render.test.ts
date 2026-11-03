@@ -61,4 +61,17 @@ describe('drawDoc', () => {
     drawDoc(ctx, doc, photos, images, 1);
     expect(calls.filter((c) => c.op === 'drawImage')).toHaveLength(1);
   });
+
+  it('draws layer frames with the page gap width', () => {
+    const doc = createDoc();
+    doc.style.gapMm = 7;
+    const f = createFloat(photos.get('a')!, { w: 210, h: 297 }, 0);
+    doc.floats = [f];
+    const { ctx, calls } = mockCtx();
+    drawDoc(ctx, doc, photos, images, 1);
+    const frame = calls.filter((c) => c.op === 'fillRect').at(-1)!.args as number[];
+    const img = calls.filter((c) => c.op === 'drawImage').at(-1)!.args as number[];
+    // frame rect is larger than the photo by the gap on each side
+    expect(frame[2]! - (img[3] as number)).toBeCloseTo(14);
+  });
 });

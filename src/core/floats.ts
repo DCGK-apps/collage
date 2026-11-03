@@ -3,8 +3,6 @@ import { uid } from './ids';
 import type { FloatLayer, Photo, Size } from './types';
 
 export const MIN_FLOAT_MM = 15;
-/** Width of the optional white frame, as a fraction of the shorter photo side. */
-export const FRAME_FRACTION = 0.05;
 
 export interface FloatBox {
   /** Centre and size of the photo itself (frame excluded), mm. */
@@ -21,7 +19,11 @@ export function photoAspect(p: Photo | undefined): number {
   return p && p.width > 0 && p.height > 0 ? p.width / p.height : 1;
 }
 
-export function floatBox(f: FloatLayer, photo: Photo | undefined, page: Size): FloatBox {
+/**
+ * Geometry of a float layer. `frameMm` is the white frame width shared by all
+ * layers (the page's gap setting), applied only when the layer has its frame on.
+ */
+export function floatBox(f: FloatLayer, photo: Photo | undefined, page: Size, frameMm = 0): FloatBox {
   const w = f.size * page.w;
   const h = w / photoAspect(photo);
   return {
@@ -29,7 +31,7 @@ export function floatBox(f: FloatLayer, photo: Photo | undefined, page: Size): F
     cy: f.cy * page.h,
     w,
     h,
-    frame: f.frame ? Math.min(w, h) * FRAME_FRACTION : 0,
+    frame: f.frame ? Math.max(0, frameMm) : 0,
     rotation: f.rotation,
   };
 }

@@ -84,3 +84,21 @@ test('adding a photo to the grid splits a cell and keeps edge tweaks', async ({ 
   await expect(cells(page)).toHaveCount(5);
   expect((await getDoc(page)).tree.first.ratio).toBeCloseTo(ratio);
 });
+
+test('the gap slider also sets the frame width of every layer', async ({ page }) => {
+  await addLayer(page, [255, 0, 0]);
+  await addLayer(page, [0, 0, 255]);
+  const frames = async () =>
+    page.getByTestId('float').evaluateAll((els) => els.map((e) => parseFloat(getComputedStyle(e).paddingLeft)));
+  const before = await frames();
+  await page.locator('.tab[data-tab="tab-style"]').click();
+  await page.locator('#rng-gap').fill('12');
+  await expect.poll(async () => (await frames())[0]).toBeGreaterThan(before[0]!);
+  const after = await frames();
+  const scale = (await page.getByTestId('page').boundingBox())!.width / 210;
+  for (const w of after) expect(w).toBeCloseTo(12 * scale, 0);
+  expect(after[0]).toBeGreaterThan(before[0]!);
+  // Turning the frame off on one layer removes it only there.
+  await page.getByTestId('float-toolbar').locator('[data-act="frame"]').click();
+  await expect.poll(async () => (await frames()).filter((w) => w === 0).length).toBe(1);
+});

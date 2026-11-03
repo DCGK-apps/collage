@@ -225,7 +225,7 @@ export class Stage {
         fe.photoId = f.photoId;
         fe.img.src = photo.src;
       }
-      const b = floatBox(f, photo, this.pageSize);
+      const b = floatBox(f, photo, this.pageSize, doc.style.gapMm);
       const st = fe.el.style;
       const fw = (b.w + 2 * b.frame) * s;
       const fh = (b.h + 2 * b.frame) * s;

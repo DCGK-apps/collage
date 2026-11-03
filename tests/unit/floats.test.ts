@@ -80,6 +80,27 @@ describe('reorder', () => {
   });
 });
 
+describe('frame width', () => {
+  it('uses one shared width for every framed layer', () => {
+    const a = createFloat(landscape, A4, 0);
+    const b = { ...createFloat(portrait, A4, 1), size: 0.2 };
+    expect(floatBox(a, landscape, A4, 6).frame).toBe(6);
+    expect(floatBox(b, portrait, A4, 6).frame).toBe(6);
+  });
+
+  it('follows the setting and is zero when the layer has no frame', () => {
+    const f = createFloat(landscape, A4, 0);
+    expect(floatBox(f, landscape, A4, 0).frame).toBe(0);
+    expect(floatBox(f, landscape, A4, 12).frame).toBe(12);
+    expect(floatBox({ ...f, frame: false }, landscape, A4, 12).frame).toBe(0);
+  });
+
+  it('does not change the photo size itself', () => {
+    const f = createFloat(landscape, A4, 0);
+    expect(floatBox(f, landscape, A4, 12).w).toBeCloseTo(floatBox(f, landscape, A4, 2).w);
+  });
+});
+
 describe('hitFloat', () => {
   it('respects rotation', () => {
     const f = { ...createFloat(landscape, A4, 0), rotation: 90, frame: false };
