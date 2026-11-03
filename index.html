@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1120" />
+  <title>Kreator Kolaży</title>
+</head>
+<body data-mode="edges">
+  <header class="topbar">
+    <div class="mode-switch" role="tablist" aria-label="Tryb edycji">
+      <button class="mode-btn active" data-mode="edges" data-testid="mode-edges" title="Przesuwaj krawędzie (dwuklik – obróć podział)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg>
+        <span>Krawędzie</span>
+      </button>
+      <button class="mode-btn" data-mode="crop" data-testid="mode-crop" title="Kadruj i powiększaj zdjęcia">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+        <span>Kadr</span>
+      </button>
+      <button class="mode-btn" data-mode="layers" data-testid="mode-layers" title="Swobodne zdjęcia na wierzchu">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+        <span>Warstwy</span>
+      </button>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="btn-undo" data-testid="undo" title="Cofnij (Ctrl+Z)" aria-label="Cofnij">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-redo" data-testid="redo" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      </button>
+      <button class="btn btn-soft" id="btn-smart" title="Dopasuj podziały do proporcji zdjęć">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+        <span class="hide-xs">Dopasuj</span>
+      </button>
+      <button class="btn btn-save" id="btn-open-export" data-testid="open-export">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        <span>Zapisz</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="workspace">
+    <div class="toolbar" id="cell-toolbar" data-testid="cell-toolbar" hidden>
+      <button class="tool-btn" data-act="zoom-out" title="Oddal">−</button>
+      <span class="tool-val" id="tb-zoom">1.0×</span>
+      <button class="tool-btn" data-act="zoom-in" title="Powiększ">+</button>
+      <button class="tool-btn" data-act="center" title="Wyśrodkuj kadr">Centruj</button>
+      <button class="tool-btn" data-act="rotate" title="Obróć o 90°">90°</button>
+      <button class="tool-btn" data-act="swap" title="Zamień z innym zdjęciem – stuknij potem drugie">Zamień</button>
+      <button class="tool-btn" data-act="replace" title="Wybierz inne zdjęcie">Zmień</button>
+      <button class="tool-btn danger" data-act="remove" title="Usuń komórkę z układu">Usuń</button>
+    </div>
+    <div class="toolbar" id="float-toolbar" data-testid="float-toolbar" hidden>
+      <button class="tool-btn" data-act="front" title="Na wierzch">⤒</button>
+      <button class="tool-btn" data-act="up" title="Warstwę wyżej">↑</button>
+      <button class="tool-btn" data-act="down" title="Warstwę niżej">↓</button>
+      <button class="tool-btn" data-act="back" title="Na spód">⤓</button>
+      <button class="tool-btn" data-act="frame" title="Biała ramka">Ramka</button>
+      <button class="tool-btn" data-act="shadow" title="Cień">Cień</button>
+      <button class="tool-btn" data-act="straighten" title="Wyprostuj">0°</button>
+      <button class="tool-btn danger" data-act="remove" title="Usuń warstwę">Usuń</button>
+    </div>
+    <button class="icon-btn float-btn" id="btn-handles" data-testid="toggle-handles" title="Ukryj / pokaż uchwyty krawędzi (H)" aria-pressed="true">
+      <svg class="icon eye-on" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg class="icon eye-off" viewBox="0 0 24 24"><path d="M9.9 4.2A10 10 0 0 1 12 4c6.5 0 10 8 10 8a17 17 0 0 1-2.2 3.2M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/></svg>
+    </button>
+    <div class="hint" id="mode-hint"></div>
+  </main>
+
+  <section id="sheet">
+    <button id="sheet-handle" aria-label="Zwiń / rozwiń panel"><span></span></button>
+    <div id="sheet-body">
+      <div class="panel active" id="tab-layout">
+        <div>
+          <div class="label"><span>Format</span><button class="link" id="btn-orientation" data-testid="orientation">Obróć stronę</button></div>
+          <div class="chips" id="format-chips"></div>
+        </div>
+        <div>
+          <div class="label"><span>Układ</span><button class="link" id="btn-equalize">Wyrównaj</button></div>
+          <div class="presets">
+            <button class="preset-btn active" data-preset="grid">Siatka</button>
+            <button class="preset-btn" data-preset="mosaic">Magazyn</button>
+            <button class="preset-btn" data-preset="featured">Wyróżnione</button>
+            <button class="preset-btn" data-preset="columns">Kolumny</button>
+            <button class="preset-btn" data-preset="rows">Wiersze</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="chk-link" checked /> Przesuwaj wyrównane krawędzie razem <small>(Alt – pojedynczo)</small></label>
+      </div>
+
+      <div class="panel" id="tab-photos">
+        <div class="row">
+          <label class="btn btn-soft grow" data-testid="add-grid">
+            <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+            <span>Dodaj do układu</span>
+            <input type="file" id="file-grid" multiple accept="image/*" hidden />
+          </label>
+          <label class="btn btn-soft grow" data-testid="add-layer">
+            <svg class="icon" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/></svg>
+            <span>Dodaj jako warstwę</span>
+            <input type="file" id="file-layer" multiple accept="image/*" hidden />
+          </label>
+          <button class="btn btn-dark" id="btn-shuffle">Wymieszaj</button>
+        </div>
+        <div>
+          <div class="label"><span>Zdjęcia w projekcie</span><small>stuknij – wstaw do zaznaczonej komórki · ⧉ – jako warstwa</small></div>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="tab-layers">
+        <div class="row">
+          <label class="btn btn-soft grow">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Nowa warstwa ze zdjęcia</span>
+            <input type="file" id="file-layer-2" multiple accept="image/*" hidden />
+          </label>
+        </div>
+        <div class="label"><span>Warstwy (od góry)</span></div>
+        <div class="layer-list" id="layer-list"></div>
+      </div>
+
+      <div class="panel" id="tab-style">
+        <div>
+          <div class="label"><span>Odstęp i ramki warstw</span><span id="lbl-gap">4 mm</span></div>
+          <input type="range" id="rng-gap" min="0" max="20" step="0.5" value="4" />
+        </div>
+        <div>
+          <div class="label"><span>Zaokrąglenie rogów</span><span id="lbl-radius">1.5 mm</span></div>
+          <input type="range" id="rng-radius" min="0" max="20" step="0.5" value="1.5" />
+        </div>
+        <div>
+          <div class="label"><span>Kolor tła</span></div>
+          <div class="colors" id="colors">
+            <button class="color" style="background:#ffffff" data-color="#ffffff" title="Biały"></button>
+            <button class="color" style="background:#f5f0e6" data-color="#f5f0e6" title="Kremowy"></button>
+            <button class="color" style="background:#e0e7ff" data-color="#e0e7ff" title="Lawendowy"></button>
+            <button class="color" style="background:#fee2e2" data-color="#fee2e2" title="Różowy"></button>
+            <button class="color" style="background:#0f172a" data-color="#0f172a" title="Granatowy"></button>
+            <button class="color" style="background:#000000" data-color="#000000" title="Czarny"></button>
+            <input type="color" id="color-custom" value="#ffffff" title="Własny kolor" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="tab-layout">
+      <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
+      <span>Układ</span>
+    </button>
+    <button class="tab" data-tab="tab-photos" data-testid="tab-photos">
+      <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+      <span>Zdjęcia</span>
+    </button>
+    <button class="tab" data-tab="tab-layers" data-testid="tab-layers">
+      <svg class="icon" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+      <span>Warstwy</span>
+    </button>
+    <button class="tab" data-tab="tab-style">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1a1.6 1.6 0 0 1 1.7-1.7h2c3 0 5.5-2.5 5.5-5.6C22 6.5 17.5 2 12 2Z"/></svg>
+      <span>Styl</span>
+    </button>
+  </nav>
+
+  <div class="modal" id="export-modal" data-testid="export-modal">
+    <div class="modal-box">
+      <div class="modal-title"><span>Eksport kolażu</span><button class="icon-btn" id="btn-close-export" aria-label="Zamknij">✕</button></div>
+      <p class="muted" id="export-info"></p>
+      <div>
+        <div class="label"><span>Rozdzielczość</span></div>
+        <div class="chips" id="dpi-chips">
+          <button class="chip" data-dpi="150">150 DPI</button>
+          <button class="chip active" data-dpi="300">300 DPI (druk)</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <button class="btn btn-save tall" id="btn-export-pdf" data-testid="export-pdf">Pobierz PDF</button>
+        <button class="btn btn-dark tall" id="btn-print">Drukuj</button>
+        <button class="btn btn-dark tall" id="btn-export-png" data-testid="export-png">Pobierz PNG</button>
+        <button class="btn btn-dark tall" id="btn-export-jpg" data-testid="export-jpg">Pobierz JPG</button>
+      </div>
+      <button class="btn btn-soft tall" id="btn-share">Udostępnij…</button>
+    </div>
+  </div>
+
+  <input type="file" id="file-cell" accept="image/*" hidden />
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="print-area" aria-hidden="true"></div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
