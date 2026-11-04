@@ -46,7 +46,14 @@ export function pngSize(buf: Buffer): { w: number; h: number } {
 
 /* ------------------------------------------------------------ app helpers */
 
-export async function openApp(page: Page, opts: { installBanner?: boolean } = {}): Promise<void> {
+export async function openApp(page: Page, opts: { installBanner?: boolean; savePicker?: boolean } = {}): Promise<void> {
+  if (!opts.savePicker) {
+    // Tests check plain downloads; the native "Save as" dialog can't be driven headless.
+    // save-dialog.spec.ts installs a scripted dialog instead.
+    await page.addInitScript(() => {
+      delete (window as any).showSaveFilePicker;
+    });
+  }
   if (!opts.installBanner) {
     // Keep the install banner out of unrelated tests (Chrome may offer installation).
     await page.addInitScript(() => {

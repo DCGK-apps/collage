@@ -22,6 +22,7 @@ import { IdbStorage, requestPersistentStorage, restoreProject } from './persist'
 import { initPwa } from './pwa';
 import { initTemplates } from './ui/templates';
 import { Store, loadPref, savePref, type Mode } from './store';
+import { askWhereToSave, canAskWhereToSave, saveFile, setAskWhereToSave, type SaveResult } from './ui/saveFile';
 import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderToCanvas } from './ui/export';
 import { loadDemoPhotos, loadFiles, type LoadedPhoto } from './ui/images';
 import { Stage, vibrate } from './ui/stage';
@@ -430,30 +431,36 @@ async function guarded(fn: () => Promise<void>): Promise<void> {
     toast('Eksport nie powiódł się');
   }
 }
+/** Toast after saving; nothing to say when the user closed the save dialog. */
+function savedToast(r: SaveResult, what: string): void {
+  if (r.how === 'saved') toast(`Zapisano ${what} ${r.name}`);
+  else if (r.how !== 'cancelled') toast(`Pobrano ${what}`);
+}
+const exportImage = (name: string, type: string, quality?: number) =>
+  saveFile(name, 'collage', () => canvasToBlob(renderToCanvas(store, store.ui.exportDpi).canvas, type, quality));
 $('#btn-export-pdf').addEventListener('click', () =>
-  guarded(async () => {
-    downloadBlob(await exportPdf(store, store.ui.exportDpi), 'kolaz.pdf');
-    toast('Pobrano PDF');
-  }),
+  guarded(async () => savedToast(await saveFile('kolaz.pdf', 'collage', () => exportPdf(store, store.ui.exportDpi)), 'PDF')),
 );
 $('#btn-export-png').addEventListener('click', () =>
-  guarded(async () => {
-    downloadBlob(await canvasToBlob(renderToCanvas(store, store.ui.exportDpi).canvas, 'image/png'), 'kolaz.png');
-    toast('Pobrano PNG');
-  }),
+  guarded(async () => savedToast(await exportImage('kolaz.png', 'image/png'), 'PNG')),
 );
 $('#btn-export-jpg').addEventListener('click', () =>
-  guarded(async () => {
-    downloadBlob(await canvasToBlob(renderToCanvas(store, store.ui.exportDpi).canvas, 'image/jpeg', 0.93), 'kolaz.jpg');
-    toast('Pobrano JPG');
-  }),
+  guarded(async () => savedToast(await exportImage('kolaz.jpg', 'image/jpeg', 0.93), 'JPG')),
 );
 $('#btn-project-save').addEventListener('click', () =>
   guarded(async () => {
-    const name = await saveProjectFile(store);
-    toast(`Zapisano projekt ${name}`);
+    const r = await saveProjectFile(store);
+    if (r.how !== 'cancelled') toast(`Zapisano projekt ${r.name}`);
   }),
 );
+const askSave = $<HTMLInputElement>('#ask-save');
+if (canAskWhereToSave()) {
+  askSave.checked = askWhereToSave();
+  askSave.addEventListener('change', () => setAskWhereToSave(askSave.checked));
+  $('#save-where').hidden = false;
+} else {
+  $('#save-where-hint').hidden = false;
+}
 $<HTMLInputElement>('#file-project').addEventListener('change', async (e) => {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];

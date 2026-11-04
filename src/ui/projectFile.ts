@@ -1,7 +1,7 @@
 import { packProject, projectFileName, unpackProject, ProjectError, type ProjectPhotoAsset } from '../core/project';
 import { referencedIds } from './projectRefs';
 import type { Store } from '../store';
-import { downloadBlob } from './export';
+import { saveFile, type SaveResult } from './saveFile';
 import { loadImage, type LoadedPhoto } from './images';
 
 /** Collect photo bytes for every photo the document uses. */
@@ -23,23 +23,12 @@ async function collectAssets(store: Store): Promise<ProjectPhotoAsset[]> {
   return out;
 }
 
-/** Save the whole collage as one .collage file (share sheet on phones, download elsewhere). */
-export async function saveProjectFile(store: Store): Promise<string> {
-  const zip = packProject(store.doc, await collectAssets(store));
-  const name = projectFileName();
-  const blob = new Blob([zip as BlobPart], { type: 'application/zip' });
-  const file = new File([blob], name, { type: 'application/zip' });
-  const coarse = window.matchMedia?.('(pointer: coarse)').matches;
-  if (coarse && navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: name });
-      return name;
-    } catch {
-      /* cancelled – fall back to download */
-    }
-  }
-  downloadBlob(blob, name);
-  return name;
+/** Save the whole collage as one .collage file (save dialog, share sheet on phones, or download). */
+export function saveProjectFile(store: Store): Promise<SaveResult> {
+  return saveFile(projectFileName(), 'collage', async () => {
+    const zip = packProject(store.doc, await collectAssets(store));
+    return new Blob([zip as BlobPart], { type: 'application/zip' });
+  }, { share: true });
 }
 
 /**
