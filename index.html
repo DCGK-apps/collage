@@ -133,6 +133,28 @@
         <div class="layer-list" id="layer-list"></div>
       </div>
 
+      <div class="panel" id="tab-templates">
+        <div class="row">
+          <button class="btn btn-soft grow" id="btn-tpl-save" data-testid="template-save">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span>Zapisz bieżący jako szablon</span>
+          </button>
+          <label class="btn btn-dark" data-testid="template-import" title="Wczytaj pliki .collage-template.json">
+            <span>Importuj</span>
+            <input type="file" id="file-templates" accept=".json,application/json" multiple hidden />
+          </label>
+          <button class="btn btn-dark" id="btn-tpl-export-mine" data-testid="template-export-mine" title="Wszystkie moje szablony w jednym pliku">Eksportuj moje</button>
+        </div>
+        <div>
+          <div class="label"><span>Szablony</span><small>stuknij – zastosuj (Cofnij przywraca)</small></div>
+          <div class="chips">
+            <button class="chip active" id="tpl-filter-match" data-testid="template-filter-match">Pasujące</button>
+            <button class="chip" id="tpl-filter-all" data-testid="template-filter-all">Wszystkie</button>
+          </div>
+        </div>
+        <div class="tpl-grid" id="template-list"></div>
+      </div>
+
       <div class="panel" id="tab-style">
         <div>
           <div class="label"><span>Odstęp i ramki warstw</span><span id="lbl-gap">4 mm</span></div>
@@ -170,6 +192,10 @@
     <button class="tab" data-tab="tab-layers" data-testid="tab-layers">
       <svg class="icon" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
       <span>Warstwy</span>
+    </button>
+    <button class="tab" data-tab="tab-templates" data-testid="tab-templates">
+      <svg class="icon" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      <span>Szablony</span>
     </button>
     <button class="tab" data-tab="tab-style" data-testid="tab-style">
       <svg class="icon" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1a1.6 1.6 0 0 1 1.7-1.7h2c3 0 5.5-2.5 5.5-5.6C22 6.5 17.5 2 12 2Z"/></svg>

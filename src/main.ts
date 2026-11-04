@@ -20,6 +20,7 @@ import type { CellNode, Doc } from './core/types';
 import { Autosaver } from './core/persist';
 import { IdbStorage, requestPersistentStorage, restoreProject } from './persist';
 import { initPwa } from './pwa';
+import { initTemplates } from './ui/templates';
 import { Store, loadPref, savePref, type Mode } from './store';
 import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderToCanvas } from './ui/export';
 import { loadDemoPhotos, loadFiles, type LoadedPhoto } from './ui/images';
@@ -697,3 +698,4 @@ $('#btn-new-project').addEventListener('click', () => {
 store.flush();
 void init();
 initPwa({ loadPref, savePref, toast });
+initTemplates(store, toast);
