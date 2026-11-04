@@ -1,7 +1,7 @@
 import './styles.css';
 import { rotateCrop, zoomAt } from './core/crop';
 import { createFloat, reorder, type ZMove } from './core/floats';
-import { randomGap, randomLayout } from './core/random';
+import { randomLayout } from './core/random';
 import { FORMATS, docPageSize, getFormat, pageSizePx } from './core/page';
 import {
   buildPreset,
@@ -298,17 +298,16 @@ $$('.preset-btn[data-preset]').forEach((b) =>
   }),
 );
 $('#btn-random').addEventListener('click', () => {
-  const gap = randomGap(Math.random);
+  // Only the layout is drawn; the style (separators, corners, background) stays as set.
   store.edit((doc) => {
     const cellsNow = listCells(doc.tree).map((c) => c.photoId);
     const ids = cellsNow.length ? cellsNow : doc.library.slice();
-    doc.style.gapMm = gap;
-    doc.tree = randomLayout(ids, pageRect(doc), gap, Math.random);
+    doc.tree = randomLayout(ids, pageRect(doc), doc.style.gapMm, Math.random, store.photos);
   });
   store.ui.preset = 'random';
   store.ui.selectedCellId = null;
   vibrate(12);
-  toast(`Wylosowano układ · separatory ${gap} mm`);
+  toast('Wylosowano układ');
 });
 
 $('#btn-equalize').addEventListener('click', () => {
@@ -386,7 +385,7 @@ $<HTMLInputElement>('#file-cell').addEventListener('change', (e) =>
   }),
 );
 $('#btn-shuffle').addEventListener('click', () => {
-  store.edit((doc) => shufflePhotos(doc.tree));
+  store.edit((doc) => shufflePhotos(doc.tree, Math.random, { photos: store.photos, page: pageRect(doc), gap: doc.style.gapMm }));
   toast('Wymieszano zdjęcia');
 });
 

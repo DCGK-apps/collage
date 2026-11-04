@@ -194,13 +194,84 @@ export function setCellPhoto(tree: LayoutNode | null, cellId: string, photoId: s
   return true;
 }
 
-/** Shuffle photos among cells (Fisher–Yates, injectable RNG for tests). */
-export function shufflePhotos(tree: LayoutNode | null, rng: () => number = Math.random): void {
+/** Photo lookup used to match photos to cells by shape. */
+export type PhotoSizes = ReadonlyMap<string, Pick<Photo, 'width' | 'height'>>;
+
+/** Natural aspect (w/h) of a photo, or undefined when unknown / empty slot. */
+function photoAspect(id: string | null, photos: PhotoSizes): number | undefined {
+  const p = id ? photos.get(id) : undefined;
+  return p && p.width > 0 && p.height > 0 ? p.width / p.height : undefined;
+}
+
+/**
+ * Random noise added to log-aspects before matching. Wide enough to mix photos
+ * of similar shape (3:4 vs 2:3), far too narrow to swap portrait and landscape
+ * (log(4/3) − log(3/4) ≈ 0.58).
+ */
+const ASPECT_JITTER = 0.3;
+
+/**
+ * Order `photoIds` so that the i-th photo suits the i-th cell (given cell
+ * aspects w/h): the tallest photos go to the tallest cells, the widest to the
+ * widest. Photos of similar shape are mixed randomly; photos of unknown shape
+ * and empty slots land anywhere.
+ */
+export function matchPhotosToCells(
+  cellAspects: readonly number[],
+  photoIds: readonly (string | null)[],
+  photos: PhotoSizes,
+  rng: () => number = Math.random,
+): (string | null)[] {
+  const jitter = () => (rng() - 0.5) * ASPECT_JITTER;
+  const cellKeys = cellAspects.map((a, i) => ({ i, key: Math.log(a) + jitter() }));
+  const lo = Math.min(...cellKeys.map((c) => c.key));
+  const hi = Math.max(...cellKeys.map((c) => c.key));
+  const photoKeys = photoIds.map((id) => {
+    const a = photoAspect(id, photos);
+    return { id, key: a === undefined ? lo + (hi - lo) * rng() : Math.log(a) + jitter() };
+  });
+  cellKeys.sort((a, b) => a.key - b.key);
+  photoKeys.sort((a, b) => a.key - b.key);
+  const out: (string | null)[] = new Array(cellAspects.length).fill(null);
+  cellKeys.forEach((c, k) => (out[c.i] = photoKeys[k]?.id ?? null));
+  return out;
+}
+
+/** How badly photos fit their cells: sum of |log(cell aspect / photo aspect)|. */
+export function aspectMismatch(cellAspects: readonly number[], photoIds: readonly (string | null)[], photos: PhotoSizes): number {
+  let cost = 0;
+  cellAspects.forEach((a, i) => {
+    const p = photoAspect(photoIds[i] ?? null, photos);
+    if (p !== undefined && a > 0) cost += Math.abs(Math.log(a / p));
+  });
+  return cost;
+}
+
+/**
+ * Shuffle photos among cells (injectable RNG for tests). With photo sizes and
+ * the page, photos are matched to cells by shape – portrait photos go to tall
+ * cells, landscape ones to wide cells – and shuffled among similar ones.
+ */
+export function shufflePhotos(
+  tree: LayoutNode | null,
+  rng: () => number = Math.random,
+  fit?: { photos: PhotoSizes; page: Rect; gap: number },
+): void {
   const cells = listCells(tree);
-  const photos = cells.map((c) => c.photoId);
-  for (let i = photos.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [photos[i], photos[j]] = [photos[j]!, photos[i]!];
+  const current = cells.map((c) => c.photoId);
+  let photos: (string | null)[];
+  if (fit) {
+    const aspects = computeLayout(tree, fit.page, fit.gap).cells.map((c) => (c.rect.h > 0 ? c.rect.w / c.rect.h : 1));
+    // A few tries so the button visibly changes something when it can.
+    photos = matchPhotosToCells(aspects, current, fit.photos, rng);
+    for (let t = 0; t < 8 && photos.every((p, i) => p === current[i]); t++)
+      photos = matchPhotosToCells(aspects, current, fit.photos, rng);
+  } else {
+    photos = current.slice();
+    for (let i = photos.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [photos[i], photos[j]] = [photos[j]!, photos[i]!];
+    }
   }
   cells.forEach((c, i) => {
     c.photoId = photos[i] ?? null;
@@ -225,7 +296,7 @@ export function equalize(tree: LayoutNode | null): void {
  * Adjust ratios so cells approach their photos' aspect ratios (less cropping).
  * Ratios are kept within the valid drag range.
  */
-export function smartFit(tree: LayoutNode | null, photos: Map<string, Photo>, page: Rect, gap: number): void {
+export function smartFit(tree: LayoutNode | null, photos: PhotoSizes, page: Rect, gap: number): void {
   if (!tree) return;
   const aspect = (n: LayoutNode): number => {
     // Natural aspect (w/h) of a subtree when every photo keeps its own aspect.

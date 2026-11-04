@@ -18,7 +18,7 @@ Edytor kolaży zdjęć działający w przeglądarce (telefon i komputer), z domy
   zamiana zdjęć między komórkami, usuwanie komórek, puste komórki „+ Dodaj zdjęcie”.
 - **Warstwy** – zdjęcia swobodne nad układem: przesuwanie, skalowanie i obrót (uchwyty lub dwa palce),
   kolejność warstw, biała ramka (grubość = suwak odstępu), cień.
-- **Układy** – presety, **„Losuj”** (losowy układ i grubość separatorów), **szablony** (wbudowane i własne,
+- **Układy** – presety, **„Losuj”** (losowy układ, zdjęcia pionowe trafiają w pionowe pola, poziome w poziome; styl zostaje bez zmian), **szablony** (wbudowane i własne,
   eksport/import plików JSON), „Dopasuj” do proporcji zdjęć, „Nowy kolaż”.
 - **Zapis** – kolaż zapisuje się sam w telefonie (przetrwa odświeżenie i aktualizację);
   cały projekt ze zdjęciami można zapisać do pliku **`.collage`** i otworzyć na innym urządzeniu.
