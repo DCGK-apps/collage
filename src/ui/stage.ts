@@ -17,7 +17,8 @@ import {
 } from '../core/geometry';
 import { docPageSize, fitScale } from '../core/page';
 import { findNode, toggleSplitDir } from '../core/tree';
-import type { CellNode, Crop, FloatLayer, Size } from '../core/types';
+import type { CellNode, Crop, Dir, FloatLayer, LayoutNode, Size } from '../core/types';
+import { splitDividerAt } from '../core/restructure';
 import type { Store } from '../store';
 
 /** Snap distance for edges, in screen pixels. */
@@ -375,9 +376,20 @@ export class Stage {
           begin(pickDivider(cands, p.x, p.y, { dx, dy }, pick)!.id);
           if (!session) return;
         }
-        const s: DragSession = session;
+        let s: DragSession = session;
         const deltaPx = s.dir === 'v' ? dx : dy;
         if (!moved && Math.abs(deltaPx) < 2) return;
+        if (!moved && !linked) {
+          // Dragging one segment of a line that is crossed by another: rewrite the
+          // layout (same picture) so that this segment is a divider of its own.
+          const before = this.store.doc.tree;
+          const id = this.isolateSegment(s.group[0]!.id, s.dir, p);
+          if (this.store.doc.tree !== before) {
+            begin(id);
+            if (!session) return;
+            s = session;
+          }
+        }
         moved = true;
         const pos = resolveDragPosition(s, deltaPx / this.scale, me.shiftKey ? 0 : SNAP_PX / this.scale);
         this.store.touchGesture();
@@ -404,6 +416,44 @@ export class Stage {
     });
     // Native dblclick is handled by our own tap logic (works for touch too).
     this.dividersLayer.addEventListener('dblclick', (e) => e.preventDefault());
+  }
+
+  /**
+   * Make the part of divider `id` under point `p` an independent divider by
+   * rewriting the tree into an equivalent one (cells do not move). Returns the
+   * id of the divider now under the point (unchanged when nothing was needed).
+   */
+  private isolateSegment(id: string, dir: Dir, p: Pt): string {
+    let current = id;
+    for (let i = 0; i < 8; i++) {
+      const d = this.layout.dividers.find((x) => x.id === current);
+      if (!d) return current;
+      const margin = 0.5;
+      const crossings = junctions(this.layout).filter((j) =>
+        j.dir !== dir &&
+        (dir === 'h'
+          ? Math.abs(j.y - d.pos) < 0.01 && j.x > d.spanStart + margin && j.x < d.spanEnd - margin
+          : Math.abs(j.x - d.pos) < 0.01 && j.y > d.spanStart + margin && j.y < d.spanEnd - margin),
+      );
+      let next: LayoutNode | null = null;
+      for (const j of crossings) {
+        for (const crossingId of j.ids) {
+          next = this.store.doc.tree ? splitDividerAt(this.store.doc.tree, current, crossingId) : null;
+          if (next) break;
+        }
+        if (next) break;
+      }
+      if (!next) return current;
+      this.store.touchGesture(); // undo restores the original structure
+      this.store.doc.tree = next;
+      this.render();
+      const under = this.layout.dividers
+        .filter((x) => x.dir === dir && (dir === 'v' ? p.y >= x.spanStart && p.y <= x.spanEnd : p.x >= x.spanStart && p.x <= x.spanEnd))
+        .sort((a, b) => Math.abs(a.pos - (dir === 'v' ? p.x : p.y)) - Math.abs(b.pos - (dir === 'v' ? p.x : p.y)))[0];
+      if (!under) return current;
+      current = under.id;
+    }
+    return current;
   }
 
   private onDividerTap(id: string): void {
