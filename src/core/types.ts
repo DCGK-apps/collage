@@ -64,6 +64,8 @@ export type Orientation = 'portrait' | 'landscape';
 export interface Doc {
   formatId: string;
   orientation: Orientation;
+  /** Page size for the 'custom' format, in mm, portrait-normalised (w <= h). */
+  customMm?: Size;
   style: Style;
   tree: LayoutNode | null;
   floats: FloatLayer[];

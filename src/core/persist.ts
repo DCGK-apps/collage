@@ -1,4 +1,5 @@
 import { createDoc } from './doc';
+import { readCustom } from './page';
 import type { Doc, LayoutNode, Photo } from './types';
 
 /**
@@ -75,6 +76,7 @@ export function restoreDoc(raw: unknown, available: Set<string>): Doc | null {
   const doc: Doc = {
     ...base,
     formatId: typeof d.formatId === 'string' ? d.formatId : base.formatId,
+    ...(readCustom(d.customMm) ? { customMm: readCustom(d.customMm) } : {}),
     orientation: d.orientation === 'landscape' ? 'landscape' : 'portrait',
     style: {
       gapMm: isNum(d.style.gapMm) ? d.style.gapMm : base.style.gapMm,

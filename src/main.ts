@@ -2,7 +2,18 @@ import './styles.css';
 import { rotateCrop, zoomAt } from './core/crop';
 import { createFloat, reorder, type ZMove } from './core/floats';
 import { randomLayout } from './core/random';
-import { FORMATS, docPageSize, getFormat, pageSizePx } from './core/page';
+import {
+  CUSTOM_FORMAT_ID,
+  DEFAULT_CUSTOM_MM,
+  FORMATS,
+  docPageSize,
+  getFormat,
+  mmToPx,
+  normalizeCustom,
+  pageSizePx,
+  pxToMm,
+  readCustom,
+} from './core/page';
 import {
   buildPreset,
   equalize,
@@ -277,6 +288,82 @@ for (const f of FORMATS) {
   });
   formatChips.append(b);
 }
+
+// Custom format: stored in mm (like the rest of the model); px are converted at the export DPI.
+// The last size and unit are remembered per browser, so a new collage gets them back.
+type SizeUnit = 'mm' | 'px';
+let customUnit: SizeUnit = loadPref<SizeUnit>('customUnit', 'mm') === 'px' ? 'px' : 'mm';
+const inpW = $<HTMLInputElement>('#custom-w');
+const inpH = $<HTMLInputElement>('#custom-h');
+{
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.dataset.format = CUSTOM_FORMAT_ID;
+  b.dataset.testid = 'format-custom';
+  b.textContent = 'Własny';
+  b.title = 'Własny rozmiar strony w mm lub px';
+  b.addEventListener('click', () => {
+    if (store.doc.formatId === CUSTOM_FORMAT_ID) return;
+    store.edit((doc) => {
+      doc.formatId = CUSTOM_FORMAT_ID;
+      if (!doc.customMm) {
+        // Last size as entered (w × h in page orientation).
+        const s = readCustomEntered(loadPref<unknown>('customMm', null)) ?? DEFAULT_CUSTOM_MM;
+        doc.customMm = normalizeCustom(s);
+        doc.orientation = s.w > s.h ? 'landscape' : 'portrait';
+      }
+    });
+  });
+  formatChips.append(b);
+}
+
+function readCustomEntered(raw: unknown): { w: number; h: number } | undefined {
+  if (!readCustom(raw)) return undefined;
+  const { w, h } = raw as { w: number; h: number };
+  return { w, h };
+}
+
+function fmtSize(mm: number): string {
+  return customUnit === 'px' ? String(mmToPx(mm, store.ui.exportDpi)) : String(Math.round(mm * 10) / 10);
+}
+
+function applyCustomInputs(): void {
+  const w = parseFloat(inpW.value.replace(',', '.'));
+  const h = parseFloat(inpH.value.replace(',', '.'));
+  if (!(w > 0) || !(h > 0)) {
+    renderControls();
+    return;
+  }
+  const toMm = (v: number) => (customUnit === 'px' ? pxToMm(v, store.ui.exportDpi) : v);
+  const entered = { w: toMm(w), h: toMm(h) };
+  const norm = normalizeCustom(entered);
+  const orientation = entered.w > entered.h ? 'landscape' : entered.w < entered.h ? 'portrait' : store.doc.orientation;
+  const next = orientation === 'portrait' ? norm : { w: norm.h, h: norm.w };
+  const cur = docPageSize(store.doc);
+  if (Math.abs(cur.w - next.w) > 0.001 || Math.abs(cur.h - next.h) > 0.001) {
+    store.edit((doc) => {
+      doc.customMm = norm;
+      doc.orientation = orientation;
+    });
+  }
+  savePref('customMm', next);
+  // Show clamped / rounded values right away.
+  inpW.value = fmtSize(next.w);
+  inpH.value = fmtSize(next.h);
+}
+for (const inp of [inpW, inpH]) {
+  inp.addEventListener('change', applyCustomInputs);
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') inp.blur();
+  });
+}
+$$('#custom-size [data-unit]').forEach((c) =>
+  c.addEventListener('click', () => {
+    customUnit = c.dataset.unit === 'px' ? 'px' : 'mm';
+    savePref('customUnit', customUnit);
+    renderControls();
+  }),
+);
 $('#btn-orientation').addEventListener('click', () => {
   store.edit((doc) => {
     doc.orientation = doc.orientation === 'portrait' ? 'landscape' : 'portrait';
@@ -393,12 +480,13 @@ $('#btn-shuffle').addEventListener('click', () => {
 
 const modal = $('#export-modal');
 function updateExportInfo(): void {
-  const f = getFormat(store.doc.formatId);
+  const f = getFormat(store.doc.formatId, store.doc.customMm);
   const page = docPageSize(store.doc);
+  const mm = (v: number) => String(Math.round(v * 10) / 10);
   const dpi = effectiveDpi(store, store.ui.exportDpi);
   const px = pageSizePx(page, dpi);
   $('#export-info').textContent =
-    `${f.label} ${store.doc.orientation === 'portrait' ? 'pionowo' : 'poziomo'} · ${page.w} × ${page.h} mm · ` +
+    `${f.label} ${store.doc.orientation === 'portrait' ? 'pionowo' : 'poziomo'} · ${mm(page.w)} × ${mm(page.h)} mm ·` +
     `${px.w} × ${px.h} px przy ${dpi} DPI` +
     (dpi !== store.ui.exportDpi ? ' (ograniczono ze względu na pamięć)' : '');
   $$('#dpi-chips .chip').forEach((c) => c.classList.toggle('active', Number(c.dataset.dpi) === store.ui.exportDpi));
@@ -415,6 +503,7 @@ $$('#dpi-chips .chip').forEach((c) =>
   c.addEventListener('click', () => {
     store.ui.exportDpi = Number(c.dataset.dpi);
     updateExportInfo();
+    store.notify();
   }),
 );
 
@@ -542,6 +631,18 @@ function renderControls(): void {
   $<HTMLButtonElement>('#btn-undo').disabled = !store.history.canUndo;
   $<HTMLButtonElement>('#btn-redo').disabled = !store.history.canRedo;
   $$('#format-chips .chip').forEach((c) => c.classList.toggle('active', c.dataset.format === doc.formatId));
+  const custom = doc.formatId === CUSTOM_FORMAT_ID;
+  $('#custom-size').hidden = !custom;
+  if (custom) {
+    const p = docPageSize(doc);
+    if (document.activeElement !== inpW) inpW.value = fmtSize(p.w);
+    if (document.activeElement !== inpH) inpH.value = fmtSize(p.h);
+    $$('#custom-size [data-unit]').forEach((c) => c.classList.toggle('active', c.dataset.unit === customUnit));
+    $('#custom-hint').textContent =
+      customUnit === 'px'
+        ? `Piksele przy ${ui.exportDpi} DPI (zmiana w oknie Zapisz) · ${Math.round(p.w * 10) / 10} × ${Math.round(p.h * 10) / 10} mm`
+        : `${mmToPx(p.w, ui.exportDpi)} × ${mmToPx(p.h, ui.exportDpi)} px przy ${ui.exportDpi} DPI`;
+  }
   $('#btn-orientation').textContent = doc.orientation === 'portrait' ? 'Pionowo ⟳' : 'Poziomo ⟳';
   $$('.preset-btn[data-preset]').forEach((b) => b.classList.toggle('active', b.dataset.preset === ui.preset));
   $('#btn-random').classList.toggle('active', ui.preset === 'random');

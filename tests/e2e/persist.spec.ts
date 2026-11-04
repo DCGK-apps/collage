@@ -60,3 +60,36 @@ test('“Nowy kolaż” starts an empty layout, undo brings the old one back', a
   await expect(page.locator('[data-testid="cell"].empty')).toHaveCount(4);
   expect((await getDoc(page)).library).toEqual([]);
 });
+
+test('custom page size (mm or px) survives a reload and is offered again for a new collage', async ({ page }) => {
+  await page.getByTestId('tab-layout').click();
+  await page.getByTestId('format-custom').click();
+  await page.getByTestId('unit-px').click();
+  await page.getByTestId('custom-w').fill('1920');
+  await page.getByTestId('custom-h').fill('1080');
+  await page.getByTestId('custom-h').press('Enter');
+  let doc = await getDoc(page);
+  expect(doc.formatId).toBe('custom');
+  expect(doc.orientation).toBe('landscape');
+  const p = await box(page.getByTestId('page'));
+  expect(p.width / p.height).toBeCloseTo(1920 / 1080, 2);
+
+  await saveAndReload(page);
+  await page.getByTestId('tab-layout').click();
+  doc = await getDoc(page);
+  expect(doc.formatId).toBe('custom');
+  expect(doc.customMm).toEqual({ w: 91.44, h: 162.56 });
+  await expect(page.getByTestId('custom-w')).toHaveValue('1920');
+  await expect(page.getByTestId('custom-h')).toHaveValue('1080');
+
+  // Switching away and back on a fresh document brings the last size back from preferences.
+  await page.locator('#format-chips [data-format="a4"]').click();
+  await page.evaluate(() => {
+    const c = (window as any).__collage;
+    c.store.doc.customMm = undefined;
+  });
+  await page.getByTestId('format-custom').click();
+  doc = await getDoc(page);
+  expect(doc.customMm).toEqual({ w: 91.44, h: 162.56 });
+  expect(doc.orientation).toBe('landscape');
+});

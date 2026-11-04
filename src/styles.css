@@ -194,6 +194,12 @@ body[data-handles='hidden'] .divider:not(.active)::before { opacity: 0; }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .chip { height: 34px; padding: 0 11px; background: #1e293b; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
 .chip.active { background: var(--accent-soft); border-color: var(--accent); color: #e0e7ff; }
+.custom-size { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.custom-size[hidden] { display: none; }
+.custom-size input { width: 78px; height: 34px; padding: 0 8px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #e2e8f0; font-size: 13px; font-weight: 600; }
+.custom-size input:focus { outline: none; border-color: var(--accent); }
+.custom-size .x { color: var(--muted); }
+.custom-size small { color: var(--muted); font-size: 11px; flex-basis: 100%; }
 .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; }
 .random-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: #fde68a; border-color: rgba(251, 191, 36, 0.45); }
 .random-btn .icon { width: 16px; height: 16px; }

@@ -95,6 +95,16 @@
         <div>
           <div class="label"><span>Format</span><button class="link" id="btn-orientation" data-testid="orientation">Obróć stronę</button></div>
           <div class="chips" id="format-chips"></div>
+          <div class="custom-size" id="custom-size" hidden>
+            <input type="number" id="custom-w" data-testid="custom-w" inputmode="decimal" min="1" step="any" aria-label="Szerokość strony" />
+            <span class="x">×</span>
+            <input type="number" id="custom-h" data-testid="custom-h" inputmode="decimal" min="1" step="any" aria-label="Wysokość strony" />
+            <div class="chips">
+              <button class="chip" data-unit="mm" data-testid="unit-mm">mm</button>
+              <button class="chip" data-unit="px" data-testid="unit-px">px</button>
+            </div>
+            <small id="custom-hint"></small>
+          </div>
         </div>
         <div>
           <div class="label"><span>Układ</span><button class="link" id="btn-equalize">Wyrównaj</button></div>

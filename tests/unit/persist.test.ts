@@ -74,6 +74,13 @@ describe('restoreDoc', () => {
     expect(out.formatId).toBe('a4');
     expect(out.style.gapMm).toBe(createDoc().style.gapMm);
   });
+
+  it('keeps a valid custom page size and drops a broken one', () => {
+    const d: any = { ...sampleDoc(), formatId: 'custom', customMm: { w: 120, h: 80 } };
+    expect(restoreDoc(wrap(d), new Set(['a', 'b', 'c']))!.customMm).toEqual({ w: 80, h: 120 });
+    d.customMm = { w: 'x' };
+    expect(restoreDoc(wrap(d), new Set(['a', 'b', 'c']))!.customMm).toBeUndefined();
+  });
 });
 
 describe('Autosaver', () => {
