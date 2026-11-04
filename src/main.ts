@@ -110,6 +110,7 @@ function setMode(mode: Mode): void {
 $$('.mode-btn').forEach((b) =>
   b.addEventListener('click', () => {
     vibrate(8);
+    setSheetOpen(false);
     setMode(b.dataset.mode as Mode);
   }),
 );
@@ -216,11 +217,23 @@ $('#float-toolbar').addEventListener('click', (e) => {
 
 /* ================================================================ sheet & tabs */
 
-$('#sheet-handle').addEventListener('click', () => $('#sheet').classList.toggle('collapsed'));
+// The settings sheet starts collapsed so the page gets the most room; it opens
+// from the handle or a tab and folds away again when the editing mode changes.
+function setSheetOpen(open: boolean): void {
+  $('#sheet').classList.toggle('collapsed', !open);
+  $('#sheet-handle').setAttribute('aria-expanded', String(open));
+}
+const sheetIsOpen = (): boolean => !$('#sheet').classList.contains('collapsed');
+$('#sheet-handle').addEventListener('click', () => setSheetOpen(!sheetIsOpen()));
 
 $$('.tab').forEach((t) =>
   t.addEventListener('click', () => {
-    $('#sheet').classList.remove('collapsed');
+    // Tapping the tab that is already open folds the sheet away.
+    if (sheetIsOpen() && t.classList.contains('active')) {
+      setSheetOpen(false);
+      return;
+    }
+    setSheetOpen(true);
     $$('.tab').forEach((x) => x.classList.toggle('active', x === t));
     $$('.panel').forEach((p) => p.classList.toggle('active', p.id === t.dataset.tab));
     if (t.dataset.tab === 'tab-layers' && store.doc.floats.length) setMode('layers');

@@ -107,6 +107,7 @@ test('crop mode pans the photo inside its cell', async ({ page }) => {
 });
 
 test('changing format keeps the layout and resizes the page', async ({ page }) => {
+  await page.getByTestId('tab-layout').click();
   await page.locator('[data-format="square"]').click();
   const p = await box(page.getByTestId('page'));
   expect(p.width / p.height).toBeCloseTo(1, 2);
