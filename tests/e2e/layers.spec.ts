@@ -5,8 +5,11 @@ test.beforeEach(async ({ page }) => openApp(page));
 
 async function addLayer(page: import('@playwright/test').Page, color: [number, number, number] = [255, 0, 0]) {
   await page.getByTestId('tab-photos').click();
+  const before = await page.getByTestId('float').count();
   await page.locator('#file-layer').setInputFiles({ name: 'layer.png', mimeType: 'image/png', buffer: makePng(60, 40, color) });
-  await expect(page.getByTestId('float')).not.toHaveCount(0);
+  // Loading is asynchronous (the busy indicator is painted first) – wait for this layer, not just any.
+  await expect(page.getByTestId('float')).toHaveCount(before + 1);
+  await expect(page.getByTestId('busy')).toBeHidden();
 }
 
 test('adds a free-floating photo above the grid and switches to layers mode', async ({ page }) => {
