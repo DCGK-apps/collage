@@ -8,6 +8,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'retain-on-failure',
+    // No CSS transitions in tests: the sheet animation would change the page scale mid-test.
+    reducedMotion: 'reduce',
   },
   webServer: {
     command: 'npm run build && npm run preview',
