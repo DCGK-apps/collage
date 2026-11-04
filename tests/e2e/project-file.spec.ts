@@ -59,3 +59,42 @@ test('a file that is not a project is refused with a message', async ({ page }) 
   await expect(page.locator('#toast')).toContainText('To nie jest plik ZIP');
   expect(await getDoc(page)).toEqual(before);
 });
+
+test('“Otwórz kolaż…” in the Układ panel opens a saved project', async ({ page, browser }) => {
+  await openApp(page);
+  const s = center(await box(dividers(page, 'v').first()));
+  await drag(page, s, { x: s.x + 40, y: s.y }, 6);
+  const before = await getDoc(page);
+  const { name, data } = await saveProject(page);
+
+  const ctx = await browser.newContext();
+  const other = await ctx.newPage();
+  await openApp(other);
+  await other.getByTestId('tab-layout').click();
+  const [chooser] = await Promise.all([other.waitForEvent('filechooser'), other.getByTestId('open-project-quick').click()]);
+  await chooser.setFiles({ name, mimeType: 'application/octet-stream', buffer: data });
+  await expect(other.locator('#toast')).toContainText('Otwarto projekt');
+  expect(await getDoc(other)).toEqual(before);
+  await ctx.close();
+});
+
+test('the save dialog scrolls on short screens with large text, so “Otwórz projekt” is reachable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 420 });
+  await openApp(page);
+  await page.addStyleTag({ content: '.modal-box .btn, .modal-box .label, .modal-box .muted { font-size: 17px !important; }' });
+  await page.getByTestId('open-export').click();
+  const open = page.getByTestId('project-open');
+  await open.scrollIntoViewIfNeeded();
+  const b = (await open.boundingBox())!;
+  expect(b.y).toBeGreaterThanOrEqual(0);
+  expect(b.y + b.height).toBeLessThanOrEqual(420 + 0.5);
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), open.click()]);
+  expect(chooser).toBeTruthy();
+  // The top of the dialog (title, close button) must be reachable as well.
+  const close = page.locator('#btn-close-export');
+  await close.scrollIntoViewIfNeeded();
+  const c = (await close.boundingBox())!;
+  expect(c.y).toBeGreaterThanOrEqual(0);
+  await close.click();
+  await expect(page.getByTestId('export-modal')).not.toHaveClass(/open/);
+});
