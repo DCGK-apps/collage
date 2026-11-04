@@ -6,6 +6,10 @@ import {
   computeLayout,
   type DragSession,
   type Layout,
+  type PickOptions,
+  dividersAt,
+  needsDirection,
+  pickDivider,
   resolveDragPosition,
 } from '../core/geometry';
 import { docPageSize, fitScale } from '../core/page';
@@ -18,6 +22,11 @@ const SNAP_PX = 8;
 /** Movement (px) below which a pointer interaction counts as a tap. */
 const TAP_SLOP = 5;
 const DOUBLE_TAP_MS = 380;
+/** Half of the visible edge pill length (CSS: 42px) and extra tolerance for fingers. */
+const PILL_HALF_PX = 21;
+const PILL_SLOP_PX = 8;
+/** Movement needed at a crossing before we decide which line is being dragged. */
+const DIRECTION_SLOP_PX = 4;
 
 export interface StageCallbacks {
   onRequestPhotoForCell(cellId: string): void;
@@ -286,27 +295,55 @@ export class Stage {
       if (!target || this.store.ui.mode !== 'edges' || e.button > 0) return;
       e.preventDefault();
       e.stopPropagation();
-      const id = target.dataset.id!;
-      const session: DragSession | null = beginDividerDrag(this.layout, id, this.store.doc.style.gapMm, {
-        linked: this.store.ui.linkEdges && !e.altKey,
-        pageRect: { x: 0, y: 0, w: this.pageSize.w, h: this.pageSize.h },
-      });
-      if (!session) return;
+
+      // Which line is meant is decided from geometry, not from which element is
+      // on top: where lines cross, the hit areas overlap.
+      const p = this.toPage(e.clientX, e.clientY);
+      const thicknessPx = target.dataset.dir === 'v' ? target.offsetWidth : target.offsetHeight;
+      const pick: PickOptions = {
+        hitHalf: thicknessPx / 2 / this.scale,
+        pillHalf: (PILL_HALF_PX + PILL_SLOP_PX) / this.scale,
+      };
+      let cands = dividersAt(this.layout, p.x, p.y, pick.hitHalf);
+      if (!cands.length) cands = this.layout.dividers.filter((d) => d.id === target.dataset.id);
+      if (!cands.length) return;
+
       target.setPointerCapture(e.pointerId);
       const start = { x: e.clientX, y: e.clientY };
+      const linked = this.store.ui.linkEdges && !e.altKey;
+      let session: DragSession | null = null;
       let moved = false;
-      this.activeDividerIds = new Set(session.group.map((g) => g.id));
+
+      const begin = (id: string): void => {
+        session = beginDividerDrag(this.layout, id, this.store.doc.style.gapMm, {
+          linked,
+          pageRect: { x: 0, y: 0, w: this.pageSize.w, h: this.pageSize.h },
+        });
+        this.activeDividerIds = new Set(session?.group.map((g) => g.id) ?? []);
+        this.render();
+      };
+
       this.store.beginGesture();
-      this.render();
+      // An unambiguous press highlights its line immediately; at a crossing we
+      // wait for the first movement to see which way the user drags.
+      if (!needsDirection(cands)) begin(pickDivider(cands, p.x, p.y, null, pick)!.id);
 
       const onMove = (me: PointerEvent): void => {
         if (me.pointerId !== e.pointerId) return;
-        const deltaPx = session.dir === 'v' ? me.clientX - start.x : me.clientY - start.y;
+        const dx = me.clientX - start.x;
+        const dy = me.clientY - start.y;
+        if (!session) {
+          if (Math.hypot(dx, dy) < DIRECTION_SLOP_PX) return;
+          begin(pickDivider(cands, p.x, p.y, { dx, dy }, pick)!.id);
+          if (!session) return;
+        }
+        const s: DragSession = session;
+        const deltaPx = s.dir === 'v' ? dx : dy;
         if (!moved && Math.abs(deltaPx) < 2) return;
         moved = true;
-        const pos = resolveDragPosition(session, deltaPx / this.scale, me.shiftKey ? 0 : SNAP_PX / this.scale);
+        const pos = resolveDragPosition(s, deltaPx / this.scale, me.shiftKey ? 0 : SNAP_PX / this.scale);
         this.store.touchGesture();
-        applyDragPosition(session, pos);
+        applyDragPosition(s, pos);
         this.store.notify();
       };
       const onEnd = (ue: PointerEvent): void => {
@@ -317,8 +354,11 @@ export class Stage {
         this.activeDividerIds.clear();
         this.store.endGesture();
         const dist = Math.hypot(ue.clientX - start.x, ue.clientY - start.y);
-        if (!moved && dist < TAP_SLOP && ue.type === 'pointerup') this.onDividerTap(id);
-        else this.lastDividerTap = null;
+        if (!moved && dist < TAP_SLOP && ue.type === 'pointerup') {
+          this.onDividerTap(pickDivider(cands, p.x, p.y, null, pick)!.id);
+        } else {
+          this.lastDividerTap = null;
+        }
       };
       target.addEventListener('pointermove', onMove);
       target.addEventListener('pointerup', onEnd);

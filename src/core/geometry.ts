@@ -225,3 +225,69 @@ export function applyDragPosition(session: DragSession, pos: number): void {
     if (size > 0) g.node.ratio = clamp01((pos - start) / size);
   }
 }
+
+/* ------------------------------------------------------------ picking at crossings */
+
+export interface PickOptions {
+  /** Half of the divider hit band thickness (mm). */
+  hitHalf: number;
+  /** Half of the visible pill length (mm), measured from the middle of the span. */
+  pillHalf: number;
+}
+
+/** Perpendicular distance from a point to a divider line (mm). */
+function lineDistance(d: DividerBox, x: number, y: number): number {
+  return d.dir === 'v' ? Math.abs(x - d.pos) : Math.abs(y - d.pos);
+}
+
+/** Dividers whose hit band contains the point, nearest line first. */
+export function dividersAt(layout: Layout, x: number, y: number, hitHalf: number): DividerBox[] {
+  const eps = 1e-6;
+  return layout.dividers
+    .filter((d) => {
+      const along = d.dir === 'v' ? y : x;
+      return lineDistance(d, x, y) <= hitHalf + eps && along >= d.spanStart - eps && along <= d.spanEnd + eps;
+    })
+    .sort((a, b) => lineDistance(a, x, y) - lineDistance(b, x, y));
+}
+
+/** The divider whose visible pill (handle) is under the point, if any. */
+export function pillAt(cands: DividerBox[], x: number, y: number, opts: PickOptions): DividerBox | null {
+  for (const d of cands) {
+    const mid = (d.spanStart + d.spanEnd) / 2;
+    const along = d.dir === 'v' ? y : x;
+    const half = Math.min(opts.pillHalf, (d.spanEnd - d.spanStart) / 2);
+    if (Math.abs(along - mid) <= half && lineDistance(d, x, y) <= opts.hitHalf) return d;
+  }
+  return null;
+}
+
+/**
+ * Decide which divider a press means. Where lines cross, several hit bands
+ * overlap; then a drag is resolved by its direction (moving up/down grabs the
+ * horizontal line, left/right the vertical one) and a tap by the pill under the
+ * finger. Otherwise the nearest line wins.
+ */
+export function pickDivider(
+  cands: DividerBox[],
+  x: number,
+  y: number,
+  move: { dx: number; dy: number } | null,
+  opts: PickOptions,
+): DividerBox | null {
+  if (cands.length === 0) return null;
+  const nearest = (list: DividerBox[]) =>
+    list.reduce((best, d) => (lineDistance(d, x, y) < lineDistance(best, x, y) ? d : best));
+  const mixed = cands.some((d) => d.dir !== cands[0]!.dir);
+  if (move && mixed) {
+    const dir: Dir = Math.abs(move.dx) >= Math.abs(move.dy) ? 'v' : 'h';
+    const pool = cands.filter((d) => d.dir === dir);
+    if (pool.length) return nearest(pool);
+  }
+  return pillAt(cands, x, y, opts) ?? nearest(cands);
+}
+
+/** True when the press is ambiguous until the pointer moves (crossing of perpendicular lines). */
+export function needsDirection(cands: DividerBox[]): boolean {
+  return cands.some((d) => d.dir !== cands[0]?.dir);
+}

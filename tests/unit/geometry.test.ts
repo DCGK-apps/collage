@@ -4,6 +4,9 @@ import {
   beginDividerDrag,
   computeLayout,
   dividerRange,
+  dividersAt,
+  needsDirection,
+  pickDivider,
   linkedDividers,
   minExtent,
   resolveDragPosition,
@@ -136,5 +139,49 @@ describe('divider drag', () => {
     const t = split('outer', 'v', 0.5, cell('a'), split('inner', 'v', 0.5, cell('b'), cell('c')));
     const s = beginDividerDrag(computeLayout(t, PAGE, 0), 'outer', 0)!;
     expect(s.snapTargets).not.toContain(150);
+  });
+});
+
+describe('picking dividers at crossings', () => {
+  // 2×2 grid on 200×300, no gap: horizontal line y=150, vertical lines x=100 (top and bottom).
+  const layout = () => computeLayout(grid2x2(), PAGE, 0);
+  const opts = { hitHalf: 5, pillHalf: 12 };
+
+  it('finds every line whose band contains the point, nearest first', () => {
+    expect(dividersAt(layout(), 101, 150, 5).map((d) => d.id).sort()).toEqual(['bottom', 'root', 'top']);
+    // Just above the crossing the bottom vertical line (which starts at y=150) is not hit.
+    expect(dividersAt(layout(), 101, 149, 5).map((d) => d.id).sort()).toEqual(['root', 'top']);
+    expect(dividersAt(layout(), 101, 60, 5).map((d) => d.id)).toEqual(['top']);
+    expect(dividersAt(layout(), 40, 60, 5)).toEqual([]);
+  });
+
+  it('a crossing is ambiguous, a plain line is not', () => {
+    expect(needsDirection(dividersAt(layout(), 100, 150, 5))).toBe(true);
+    expect(needsDirection(dividersAt(layout(), 100, 60, 5))).toBe(false);
+  });
+
+  it('vertical movement at the crossing picks the horizontal line', () => {
+    const c = dividersAt(layout(), 100, 150, 5);
+    expect(pickDivider(c, 100, 150, { dx: 1, dy: 8 }, opts)!.id).toBe('root');
+  });
+
+  it('sideways movement picks the nearest vertical line', () => {
+    expect(pickDivider(dividersAt(layout(), 100, 148, 5), 100, 148, { dx: 8, dy: 1 }, opts)!.id).toBe('top');
+    expect(pickDivider(dividersAt(layout(), 100, 152, 5), 100, 152, { dx: -8, dy: 0 }, opts)!.id).toBe('bottom');
+  });
+
+  it('a tap picks the pill under the finger (horizontal pill sits on the crossing)', () => {
+    const c = dividersAt(layout(), 100, 150, 5);
+    expect(pickDivider(c, 100, 150, null, opts)!.id).toBe('root');
+  });
+
+  it('a tap on a vertical pill picks that line', () => {
+    const c = dividersAt(layout(), 100, 75, 5);
+    expect(pickDivider(c, 100, 75, null, opts)!.id).toBe('top');
+  });
+
+  it('without a pill, the nearest line wins', () => {
+    const c = dividersAt(layout(), 103, 146, 5); // 3 mm from vertical, 4 mm from horizontal, off the horizontal pill
+    expect(pickDivider(c, 103, 146, null, { hitHalf: 5, pillHalf: 1 })!.id).toBe('top');
   });
 });
