@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { box, makePng, openApp } from './fixtures';
 
+// The bottom sheet is the narrow (portrait) layout; wide screens use a side panel (wide.spec.ts).
+test.use({ viewport: { width: 412, height: 839 } });
 test.beforeEach(async ({ page }) => openApp(page));
 
 const sheet = (page: Page) => page.getByTestId('sheet');

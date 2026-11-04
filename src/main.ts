@@ -254,17 +254,26 @@ $('#float-toolbar').addEventListener('click', (e) => {
 
 // The settings sheet starts collapsed so the page gets the most room; it opens
 // from the handle or a tab and folds away again when the editing mode changes.
+// On wide screens the controls sit in a column left of the page instead (see the
+// matching media query in styles.css): there is room for them, so they stay open.
+const wideScreen = window.matchMedia('(min-width: 760px) and (min-aspect-ratio: 4/3)');
+const isWide = (): boolean => wideScreen.matches;
 function setSheetOpen(open: boolean): void {
+  if (isWide()) open = true;
   $('#sheet').classList.toggle('collapsed', !open);
   $('#sheet-handle').setAttribute('aria-expanded', String(open));
 }
 const sheetIsOpen = (): boolean => !$('#sheet').classList.contains('collapsed');
 $('#sheet-handle').addEventListener('click', () => setSheetOpen(!sheetIsOpen()));
+// Entering the side layout opens the panel; leaving it folds the sheet so the page keeps its room.
+const applyScreenLayout = (): void => setSheetOpen(isWide());
+wideScreen.addEventListener('change', applyScreenLayout);
+applyScreenLayout();
 
 $$('.tab').forEach((t) =>
   t.addEventListener('click', () => {
-    // Tapping the tab that is already open folds the sheet away.
-    if (sheetIsOpen() && t.classList.contains('active')) {
+    // Tapping the tab that is already open folds the sheet away (not in the side layout).
+    if (!isWide() && sheetIsOpen() && t.classList.contains('active')) {
       setSheetOpen(false);
       return;
     }
