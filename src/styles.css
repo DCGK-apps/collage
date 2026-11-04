@@ -173,6 +173,7 @@ body[data-handles='hidden'] .divider:not(.active)::before { opacity: 0; }
 .panel.active { display: flex; flex-direction: column; gap: 10px; }
 .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 5px; }
 .label small { text-transform: none; font-weight: 500; letter-spacing: 0; text-align: right; }
+.label-actions { display: flex; gap: 14px; }
 .link { background: none; border: 0; color: #818cf8; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }

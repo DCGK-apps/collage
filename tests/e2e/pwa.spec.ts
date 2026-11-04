@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { extname, join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { cells, openApp, pngSize } from './fixtures';
+import { cells, getDoc, openApp, pngSize } from './fixtures';
 
 /** Fire a fake `beforeinstallprompt` (what Chrome sends when the app is installable). */
 async function offerInstall(page: Page) {
@@ -129,6 +129,14 @@ test('a new version shows “Odśwież” and is applied only after tapping it',
     await page.reload();
     await expect(page.locator('body[data-ready="true"]')).toBeAttached();
     const v1 = await swVersion(page);
+    // Some work in progress that must survive the update.
+    await page.evaluate(() => {
+      const { store } = (window as any).__collage;
+      store.edit((d: any) => {
+        d.style.gapMm = 11;
+      });
+    });
+    await page.evaluate(() => (window as any).__collage.flushSave());
 
     // "Deploy" a new version: the service worker on the server changes.
     const swPath = join(dir, 'sw.js');
@@ -144,6 +152,7 @@ test('a new version shows “Odśwież” and is applied only after tapping it',
     await expect(page.locator('body[data-ready="true"]')).toBeAttached();
     await expect.poll(() => swVersion(page)).toBe(`${v1}-next`);
     await expect(banner).toBeHidden();
+    expect((await getDoc(page)).style.gapMm).toBe(11);
   } finally {
     await site.close();
   }
