@@ -3,7 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Kreator kolaży – edytor układów zdjęć z wydrukiem A4",
+  "description": "Collage – edytor kolaży zdjęć do druku A4 (krawędzie, kadrowanie, warstwy, szablony, PWA)",
+  "homepage": "https://dcgk-apps.github.io/collage/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DCGK-apps/collage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DCGK-apps/collage/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
