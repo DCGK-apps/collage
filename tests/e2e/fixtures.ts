@@ -47,13 +47,33 @@ export function pngSize(buf: Buffer): { w: number; h: number } {
 /* ------------------------------------------------------------ app helpers */
 
 export async function openApp(page: Page): Promise<void> {
+  if (process.env.SLOW_RAF) {
+    // Stress mode: delay every animation frame so tests that measure the DOM
+    // before the app re-rendered fail locally instead of only on fast CI runners.
+    await page.addInitScript((ms) => {
+      const raf = window.requestAnimationFrame.bind(window);
+      window.requestAnimationFrame = (cb) => raf(() => setTimeout(() => cb(performance.now()), ms));
+    }, Number(process.env.SLOW_RAF) > 1 ? Number(process.env.SLOW_RAF) : 60);
+  }
   await page.goto('/');
   await expect(page.locator('body[data-ready="true"]')).toBeAttached();
 }
 
 export type Box = { x: number; y: number; width: number; height: number };
 
+/**
+ * Wait until the app has rendered pending changes. The app batches DOM updates
+ * into the next animation frame, so measuring right after a click can see the
+ * previous frame (this made CI flaky on fast runners).
+ */
+export async function settle(page: Page): Promise<void> {
+  await page.evaluate(
+    () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))),
+  );
+}
+
 export async function box(l: Locator): Promise<Box> {
+  await settle(l.page());
   const b = await l.boundingBox();
   if (!b) throw new Error('element not visible');
   return b;
@@ -90,7 +110,7 @@ export async function drag<T>(
   for (let i = 1; i <= steps; i++) {
     await page.mouse.move(from.x + ((to.x - from.x) * i) / steps, from.y + ((to.y - from.y) * i) / steps);
     if (sample) {
-      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(null))));
+      await settle(page);
       out.push(await sample());
     }
   }

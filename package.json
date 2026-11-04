@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:slow": "SLOW_RAF=60 playwright test",
     "test:all": "npm run typecheck && npm run test && npm run test:e2e"
   },
   "devDependencies": {
