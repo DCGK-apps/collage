@@ -1,4 +1,4 @@
-# Kreator Kolaży
+# Collage
 
 Edytor kolaży zdjęć działający w przeglądarce (telefon i komputer), z domyślnym formatem **A4 do wydruku**.
 
@@ -23,6 +23,21 @@ Aplikacja jest publikowana na GitHub Pages pod adresem https://grzegorzka.github
 po każdym pushu do `main` (workflow `.github/workflows/pages.yml`).
 
 Jednorazowa konfiguracja: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+## Aplikacja na telefonie (PWA)
+
+Collage można zainstalować jak aplikację:
+
+- **Android (Chrome, Samsung Internet)** – na stronie pojawia się pasek „Zainstaluj Collage”.
+- **iPhone / iPad (Safari)** – pasek podpowiada: *Udostępnij → Do ekranu początkowego*.
+
+Po instalacji aplikacja działa też bez internetu. Nowa wersja (każde scalenie do `main`)
+pobiera się w tle, a aplikacja pokazuje pasek **„Dostępna nowa wersja – Odśwież”** –
+nic nie przeładowuje się samo w trakcie pracy.
+
+Technicznie: `public/manifest.webmanifest`, ikony w `public/icons/`, service worker
+generowany przy buildzie z `src/sw-template.js` (wersja = hash opublikowanych plików),
+logika instalacji i aktualizacji w `src/pwa.ts`.
 
 ## Uruchomienie
 
