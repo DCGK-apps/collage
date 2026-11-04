@@ -16,6 +16,8 @@ import {
   type Preset,
 } from './core/tree';
 import type { CellNode, Doc } from './core/types';
+import { Autosaver } from './core/persist';
+import { IdbStorage, requestPersistentStorage, restoreProject } from './persist';
 import { initPwa } from './pwa';
 import { Store, loadPref, savePref, type Mode } from './store';
 import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderToCanvas } from './ui/export';
@@ -579,19 +581,89 @@ store.subscribe(() => {
 
 /* ================================================================ init */
 
-async function init(): Promise<void> {
+/* ================================================================ saving on the device */
+
+let storage: IdbStorage | null = null;
+try {
+  storage = 'indexedDB' in window ? new IdbStorage() : null;
+} catch {
+  storage = null;
+}
+const autosaver = storage
+  ? new Autosaver(
+      storage,
+      () => store.doc,
+      (id) => store.photos.get(id),
+      async (photo) => (await fetch(photo.src)).blob(),
+      (err) => {
+        console.error(err);
+        toast('Nie udało się zapisać projektu w telefonie');
+      },
+    )
+  : null;
+// Saving starts only after the saved project was restored – otherwise the empty
+// start-up document could overwrite it.
+let saveEnabled = false;
+if (autosaver) {
+  store.subscribe(() => {
+    if (saveEnabled) autosaver.schedule();
+  });
+  // Save immediately when the app is hidden or closed.
+  document.addEventListener('visibilitychange', () => {
+    if (saveEnabled && document.visibilityState === 'hidden') void autosaver.flush();
+  });
+  window.addEventListener('pagehide', () => {
+    if (saveEnabled) void autosaver.flush();
+  });
+}
+
+async function startDemo(): Promise<void> {
   const demo = await loadDemoPhotos();
   const ids = registerPhotos(demo);
   const p = docPageSize(store.doc);
   store.doc.library = ids;
   store.doc.tree = buildPreset('grid', ids, p.w / p.h);
+}
+
+async function init(): Promise<void> {
+  let restored = false;
+  if (storage) {
+    try {
+      const saved = await restoreProject(storage);
+      if (saved) {
+        registerPhotos(saved.photos);
+        store.doc = saved.doc;
+        autosaver?.markStored(saved.photos.map((p) => p.photo.id));
+        autosaver?.markSaved();
+        restored = true;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  if (!restored) await startDemo();
   store.history.clear();
   store.flush();
+  requestPersistentStorage();
+  saveEnabled = true;
+  if (!restored) autosaver?.schedule();
   document.body.dataset.ready = 'true';
 }
 
+$('#btn-new-project').addEventListener('click', () => {
+  const p = docPageSize(store.doc);
+  store.edit((doc) => {
+    doc.tree = buildPreset('grid', [null, null, null, null], p.w / p.h);
+    doc.floats = [];
+    doc.library = [];
+  });
+  store.ui.selectedCellId = null;
+  store.ui.selectedFloatId = null;
+  toast('Nowy kolaż – „Cofnij” przywraca poprzedni');
+});
+
 // Test/debug hook (used by the e2e suite).
-(window as unknown as { __collage: unknown }).__collage = { store, stage };
+(window as unknown as { __collage: unknown }).__collage = { store, stage, flushSave: () => autosaver?.flush() };
 
 store.flush();
 void init();
