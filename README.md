@@ -24,6 +24,30 @@ po każdym pushu do `main` (workflow `.github/workflows/pages.yml`).
 
 Jednorazowa konfiguracja: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
+## Szablony
+
+Zakładka **Szablony**: galeria wbudowanych i własnych układów (najpierw te pasujące do liczby zdjęć).
+
+- **Zastosuj** – stuknij miniaturę; zdjęcia trafiają do miejsc po kolei (Cofnij przywraca).
+- **Zapisz bieżący jako szablon** – układ, warstwy i styl bez zdjęć.
+- **Eksport / import** – szablony to zwykłe pliki `*.collage-template.json` (pojedynczy szablon lub paczka
+  `collage-template-pack`), które można kopiować między urządzeniami. Import odrzuca błędne pliki i duplikaty.
+
+Format (wersja 1) – geometria względna, pasuje do każdego formatu strony:
+
+```json
+{
+  "type": "collage-template", "version": 1, "name": "Duże + dwa", "slots": 3,
+  "page": { "orientation": "portrait" },
+  "style": { "gapMm": 4, "radiusMm": 1.5, "background": "#ffffff" },
+  "layout": { "split": "h", "ratio": 0.62, "first": { "slot": 0 },
+              "second": { "split": "v", "ratio": 0.5, "first": { "slot": 1 }, "second": { "slot": 2 } } },
+  "layers": [{ "slot": 3, "cx": 0.7, "cy": 0.3, "size": 0.35, "rotation": -6, "frame": true, "shadow": true }]
+}
+```
+
+Wbudowane szablony: `src/templates/builtin.collage-template.json` (ten sam format). Logika: `src/core/templates.ts`.
+
 ## Aplikacja na telefonie (PWA)
 
 Collage można zainstalować jak aplikację:

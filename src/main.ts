@@ -17,6 +17,7 @@ import {
 } from './core/tree';
 import type { CellNode, Doc } from './core/types';
 import { initPwa } from './pwa';
+import { initTemplates } from './ui/templates';
 import { Store, loadPref, savePref, type Mode } from './store';
 import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderToCanvas } from './ui/export';
 import { loadDemoPhotos, loadFiles, type LoadedPhoto } from './ui/images';
@@ -609,3 +610,4 @@ async function init(): Promise<void> {
 store.flush();
 void init();
 initPwa({ loadPref, savePref, toast });
+initTemplates(store, toast);

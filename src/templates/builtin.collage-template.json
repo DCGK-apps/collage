@@ -1,0 +1,83 @@
+{
+  "type": "collage-template-pack",
+  "version": 1,
+  "templates": [
+    {
+      "type": "collage-template", "version": 1, "name": "Dwa w pionie", "tags": ["2"],
+      "page": { "orientation": "portrait" },
+      "layout": { "split": "h", "ratio": 0.5, "first": { "slot": 0 }, "second": { "slot": 1 } },
+      "layers": []
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Duże + dwa", "tags": ["3"],
+      "page": { "orientation": "portrait" },
+      "layout": { "split": "h", "ratio": 0.62, "first": { "slot": 0 },
+        "second": { "split": "v", "ratio": 0.5, "first": { "slot": 1 }, "second": { "slot": 2 } } },
+      "layers": []
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Siatka 2×2", "tags": ["4"],
+      "page": { "orientation": "portrait" },
+      "layout": { "split": "h", "ratio": 0.5,
+        "first": { "split": "v", "ratio": 0.5, "first": { "slot": 0 }, "second": { "slot": 1 } },
+        "second": { "split": "v", "ratio": 0.5, "first": { "slot": 2 }, "second": { "slot": 3 } } },
+      "layers": []
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Magazyn", "tags": ["4"],
+      "page": { "orientation": "portrait" },
+      "layout": { "split": "v", "ratio": 0.6, "first": { "slot": 0 },
+        "second": { "split": "h", "ratio": 0.333, "first": { "slot": 1 },
+          "second": { "split": "h", "ratio": 0.5, "first": { "slot": 2 }, "second": { "slot": 3 } } } },
+      "layers": []
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Panorama + trzy", "tags": ["4"],
+      "page": { "orientation": "landscape" },
+      "layout": { "split": "h", "ratio": 0.58, "first": { "slot": 0 },
+        "second": { "split": "v", "ratio": 0.333, "first": { "slot": 1 },
+          "second": { "split": "v", "ratio": 0.5, "first": { "slot": 2 }, "second": { "slot": 3 } } } },
+      "layers": []
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Okładka + cztery", "tags": ["5"],
+      "page": { "orientation": "portrait" },
+      "layout": { "split": "h", "ratio": 0.55, "first": { "slot": 0 },
+        "second": { "split": "h", "ratio": 0.5,
+          "first": { "split": "v", "ratio": 0.5, "first": { "slot": 1 }, "second": { "slot": 2 } },
+          "second": { "split": "v", "ratio": 0.5, "first": { "slot": 3 }, "second": { "slot": 4 } } } },
+      "layers": []
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Siatka 2×3", "tags": ["6"],
+      "page": { "orientation": "portrait" },
+      "layout": { "split": "h", "ratio": 0.333,
+        "first": { "split": "v", "ratio": 0.5, "first": { "slot": 0 }, "second": { "slot": 1 } },
+        "second": { "split": "h", "ratio": 0.5,
+          "first": { "split": "v", "ratio": 0.5, "first": { "slot": 2 }, "second": { "slot": 3 } },
+          "second": { "split": "v", "ratio": 0.5, "first": { "slot": 4 }, "second": { "slot": 5 } } } },
+      "layers": []
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Tło + polaroidy", "tags": ["4", "warstwy"],
+      "page": { "orientation": "portrait" },
+      "style": { "gapMm": 0, "radiusMm": 0, "background": "#ffffff" },
+      "layout": { "slot": 0 },
+      "layers": [
+        { "slot": 1, "cx": 0.3, "cy": 0.24, "size": 0.42, "rotation": -7, "frame": true, "shadow": true },
+        { "slot": 2, "cx": 0.68, "cy": 0.5, "size": 0.42, "rotation": 5, "frame": true, "shadow": true },
+        { "slot": 3, "cx": 0.34, "cy": 0.77, "size": 0.42, "rotation": -3, "frame": true, "shadow": true }
+      ]
+    },
+    {
+      "type": "collage-template", "version": 1, "name": "Siatka 3×3", "tags": ["9"],
+      "page": { "orientation": "portrait" },
+      "layout": { "split": "h", "ratio": 0.333,
+        "first": { "split": "v", "ratio": 0.333, "first": { "slot": 0 }, "second": { "split": "v", "ratio": 0.5, "first": { "slot": 1 }, "second": { "slot": 2 } } },
+        "second": { "split": "h", "ratio": 0.5,
+          "first": { "split": "v", "ratio": 0.333, "first": { "slot": 3 }, "second": { "split": "v", "ratio": 0.5, "first": { "slot": 4 }, "second": { "slot": 5 } } },
+          "second": { "split": "v", "ratio": 0.333, "first": { "slot": 6 }, "second": { "split": "v", "ratio": 0.5, "first": { "slot": 7 }, "second": { "slot": 8 } } } } },
+      "layers": []
+    }
+  ]
+}
