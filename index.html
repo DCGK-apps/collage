@@ -4,7 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1120" />
-  <title>Kreator Kolaży</title>
+  <title>Collage</title>
+  <meta name="application-name" content="Collage" />
+  <meta name="apple-mobile-web-app-title" content="Collage" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
 </head>
 <body data-mode="edges">
   <header class="topbar">
@@ -187,6 +195,24 @@
   </div>
 
   <input type="file" id="file-cell" accept="image/*" hidden />
+  <div class="app-banner" id="install-banner" data-testid="install-banner" hidden>
+    <img src="./icons/icon-192.png" alt="" width="40" height="40" />
+    <div class="app-banner-text">
+      <strong>Zainstaluj Collage</strong>
+      <span class="only-prompt">Aplikacja na ekranie głównym, działa też bez internetu.</span>
+      <span class="only-ios">Stuknij <b>Udostępnij</b> <svg class="icon inline" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>, potem <b>Do ekranu początkowego</b>.</span>
+    </div>
+    <button class="btn btn-save only-prompt" id="btn-install" data-testid="install">Zainstaluj</button>
+    <button class="icon-btn" id="btn-install-close" data-testid="install-close" aria-label="Nie pokazuj więcej">✕</button>
+  </div>
+  <div class="app-banner" id="update-banner" data-testid="update-banner" role="alert" hidden>
+    <div class="app-banner-text">
+      <strong>Dostępna nowa wersja Collage</strong>
+      <span>Odświeżenie wyczyści bieżący kolaż – najpierw go zapisz.</span>
+    </div>
+    <button class="btn btn-save" id="btn-update" data-testid="update">Odśwież</button>
+    <button class="btn btn-dark" id="btn-update-later">Później</button>
+  </div>
   <div id="toast" role="status" aria-live="polite"></div>
   <div id="print-area" aria-hidden="true"></div>
   <script type="module" src="./src/main.ts"></script>

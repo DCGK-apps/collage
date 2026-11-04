@@ -46,7 +46,21 @@ export function pngSize(buf: Buffer): { w: number; h: number } {
 
 /* ------------------------------------------------------------ app helpers */
 
-export async function openApp(page: Page): Promise<void> {
+export async function openApp(page: Page, opts: { installBanner?: boolean } = {}): Promise<void> {
+  if (!opts.installBanner) {
+    // Keep the install banner out of unrelated tests (Chrome may offer installation).
+    await page.addInitScript(() => {
+      try {
+        const prefs = JSON.parse(localStorage.getItem('collage.prefs') ?? '{}');
+        if (prefs.installDismissed === undefined) {
+          prefs.installDismissed = true;
+          localStorage.setItem('collage.prefs', JSON.stringify(prefs));
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+  }
   if (process.env.SLOW_RAF) {
     // Stress mode: delay every animation frame so tests that measure the DOM
     // before the app re-rendered fail locally instead of only on fast CI runners.

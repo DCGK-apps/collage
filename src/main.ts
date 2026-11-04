@@ -16,7 +16,8 @@ import {
   type Preset,
 } from './core/tree';
 import type { CellNode, Doc } from './core/types';
-import { Store, savePref, type Mode } from './store';
+import { initPwa } from './pwa';
+import { Store, loadPref, savePref, type Mode } from './store';
 import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderToCanvas } from './ui/export';
 import { loadDemoPhotos, loadFiles, type LoadedPhoto } from './ui/images';
 import { Stage, vibrate } from './ui/stage';
@@ -594,3 +595,4 @@ async function init(): Promise<void> {
 
 store.flush();
 void init();
+initPwa({ loadPref, savePref, toast });
