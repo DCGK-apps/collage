@@ -76,6 +76,8 @@ export interface Photo {
   src: string;
   width: number;
   height: number;
+  /** Original file name (informational, kept in project files). */
+  name?: string;
 }
 
 export interface Rect {

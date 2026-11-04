@@ -22,7 +22,7 @@ export async function loadFiles(files: FileList | File[]): Promise<LoadedPhoto[]
     list.map(async (file) => {
       const src = URL.createObjectURL(file);
       const img = await loadImage(src);
-      return { photo: { id: uid('p'), src, width: img.naturalWidth, height: img.naturalHeight }, img };
+      return { photo: { id: uid('p'), src, width: img.naturalWidth, height: img.naturalHeight, name: file.name }, img };
     }),
   );
   return results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
