@@ -1,16 +1,28 @@
 # Collage
 
+Repozytorium: https://github.com/DCGK-apps/collage · aplikacja: https://dcgk-apps.github.io/collage/
+
 Edytor kolaży zdjęć działający w przeglądarce (telefon i komputer), z domyślnym formatem **A4 do wydruku**.
 
 ## Funkcje
 
 - **Krawędzie** – płynne przesuwanie linii podziału (myszą i palcem):
-  - wyrównane krawędzie przesuwają się razem jak w tabeli (Alt lub odznaczenie opcji – pojedynczo),
+  - środek odcinka przesuwa tylko ten odcinek – także lewą/prawą połowę linii poziomej
+    (układ jest w locie przebudowywany na równoważny, nic nie przeskakuje),
+  - **kropka na skrzyżowaniu** przesuwa całą wyrównaną linię (Alt na odcinku – to samo na komputerze),
   - magnetyczne przyciąganie do innych krawędzi i środka (Shift – bez przyciągania),
   - komórka nigdy nie „zapada się” (minimalny rozmiar 12 mm),
-  - **dwuklik / podwójne stuknięcie na krawędzi** obraca podział: obok siebie ↔ jedno pod drugim.
-- **Kadr** – przesuwanie zdjęcia w komórce, przybliżanie (szczypanie, kółko myszy – względem kursora), obrót o 90°, zamiana zdjęć między komórkami, usuwanie komórek, puste komórki „+ Dodaj zdjęcie”.
-- **Warstwy** – zdjęcia swobodne nad układem: przesuwanie, skalowanie i obrót (uchwyty lub dwa palce), kolejność warstw, biała ramka, cień.
+  - **dwuklik / podwójne stuknięcie na krawędzi** obraca podział: obok siebie ↔ jedno pod drugim,
+  - przycisk „oko” ukrywa niebieskie uchwyty.
+- **Kadr** – przesuwanie zdjęcia w komórce, przybliżanie (szczypanie, kółko myszy – względem kursora), obrót o 90°,
+  zamiana zdjęć między komórkami, usuwanie komórek, puste komórki „+ Dodaj zdjęcie”.
+- **Warstwy** – zdjęcia swobodne nad układem: przesuwanie, skalowanie i obrót (uchwyty lub dwa palce),
+  kolejność warstw, biała ramka (grubość = suwak odstępu), cień.
+- **Układy** – presety, **„Losuj”** (losowy układ i grubość separatorów), **szablony** (wbudowane i własne,
+  eksport/import plików JSON), „Dopasuj” do proporcji zdjęć, „Nowy kolaż”.
+- **Zapis** – kolaż zapisuje się sam w telefonie (przetrwa odświeżenie i aktualizację);
+  cały projekt ze zdjęciami można zapisać do pliku **`.collage`** i otworzyć na innym urządzeniu.
+- **Aplikacja na telefon (PWA)** – instalacja na ekranie głównym, praca offline, pasek „Dostępna nowa wersja – Odśwież”.
 - Formaty: A4 (domyślny), A3, A5, 10×15, 13×18, 1:1, 4:5, 9:16 – pion/poziom.
 - Eksport: **PDF w rozmiarze strony**, PNG, JPG (150/300 DPI), drukowanie, udostępnianie.
 - Cofnij/ponów (Ctrl+Z, Ctrl+Shift+Z), skróty klawiszowe dla warstw (strzałki, Delete).
@@ -19,7 +31,7 @@ Cała geometria liczona jest w milimetrach strony, więc podgląd i eksport są 
 
 ## Wersja online
 
-Aplikacja jest publikowana na GitHub Pages pod adresem https://grzegorzka.github.io/collage/
+Aplikacja jest publikowana na GitHub Pages pod adresem https://dcgk-apps.github.io/collage/
 po każdym pushu do `main` (workflow `.github/workflows/pages.yml`).
 
 Jednorazowa konfiguracja: **Settings → Pages → Build and deployment → Source: GitHub Actions**.

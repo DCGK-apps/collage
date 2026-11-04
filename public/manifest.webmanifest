@@ -1,7 +1,7 @@
 {
   "name": "Collage",
   "short_name": "Collage",
-  "description": "Kolaże zdjęć do druku A4 – krawędzie, kadrowanie, warstwy.",
+  "description": "Kolaże zdjęć do druku A4 – krawędzie, kadrowanie, warstwy, szablony.",
   "lang": "pl",
   "start_url": "./",
   "scope": "./",
