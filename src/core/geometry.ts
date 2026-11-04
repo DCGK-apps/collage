@@ -291,3 +291,53 @@ export function pickDivider(
 export function needsDirection(cands: DividerBox[]): boolean {
   return cands.some((d) => d.dir !== cands[0]?.dir);
 }
+
+/* ------------------------------------------------------------ junctions */
+
+export interface Junction {
+  /** Point on the page (mm). */
+  x: number;
+  y: number;
+  /** Direction of the line whose segments meet here. */
+  dir: Dir;
+  /** The collinear segments meeting at this point. */
+  ids: [string, string];
+}
+
+/**
+ * Points where two collinear segments of the same direction meet end to end
+ * (e.g. the centre of a 2×2 grid, where the top and bottom vertical edges
+ * touch). Grabbing such a point moves the whole aligned line; grabbing a
+ * segment elsewhere moves only that segment.
+ */
+export function junctions(layout: Layout, tolerance = 0.01): Junction[] {
+  const out: Junction[] = [];
+  const ds = layout.dividers;
+  for (let i = 0; i < ds.length; i++)
+    for (let j = i + 1; j < ds.length; j++) {
+      const a = ds[i]!;
+      const b = ds[j]!;
+      if (a.dir !== b.dir || Math.abs(a.pos - b.pos) > tolerance) continue;
+      let at: number | null = null;
+      if (Math.abs(a.spanEnd - b.spanStart) <= tolerance) at = a.spanEnd;
+      else if (Math.abs(b.spanEnd - a.spanStart) <= tolerance) at = b.spanEnd;
+      if (at === null) continue;
+      const p = a.dir === 'v' ? { x: a.pos, y: at } : { x: at, y: a.pos };
+      out.push({ ...p, dir: a.dir, ids: [a.id, b.id] });
+    }
+  return out;
+}
+
+/** The junction within `radius` mm of the point, nearest first. */
+export function junctionAt(list: Junction[], x: number, y: number, radius: number): Junction | null {
+  let best: Junction | null = null;
+  let bestD = Infinity;
+  for (const j of list) {
+    const d = Math.hypot(j.x - x, j.y - y);
+    if (d <= radius && d < bestD) {
+      best = j;
+      bestD = d;
+    }
+  }
+  return best;
+}

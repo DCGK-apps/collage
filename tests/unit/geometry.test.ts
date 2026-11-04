@@ -5,6 +5,8 @@ import {
   computeLayout,
   dividerRange,
   dividersAt,
+  junctionAt,
+  junctions,
   needsDirection,
   pickDivider,
   linkedDividers,
@@ -183,5 +185,35 @@ describe('picking dividers at crossings', () => {
   it('without a pill, the nearest line wins', () => {
     const c = dividersAt(layout(), 103, 146, 5); // 3 mm from vertical, 4 mm from horizontal, off the horizontal pill
     expect(pickDivider(c, 103, 146, null, { hitHalf: 5, pillHalf: 1 })!.id).toBe('top');
+  });
+});
+
+describe('junctions', () => {
+  it('finds the point where the top and bottom vertical edges of a 2×2 grid meet', () => {
+    const js = junctions(computeLayout(grid2x2(), PAGE, 0));
+    expect(js).toHaveLength(1);
+    expect(js[0]).toMatchObject({ x: 100, y: 150, dir: 'v' });
+    expect([...js[0]!.ids].sort()).toEqual(['bottom', 'top']);
+  });
+
+  it('has no junction once the edges are no longer aligned', () => {
+    const t = grid2x2();
+    (t.second as any).ratio = 0.3;
+    expect(junctions(computeLayout(t, PAGE, 0))).toEqual([]);
+  });
+
+  it('works with a gap and for horizontal lines', () => {
+    // Two columns, each split horizontally at the same height → horizontal junction.
+    const t = split('root', 'v', 0.5, split('l', 'h', 0.4, cell('a'), cell('b')), split('r', 'h', 0.4, cell('c'), cell('d')));
+    const js = junctions(computeLayout(t, PAGE, 6));
+    expect(js).toHaveLength(1);
+    expect(js[0]!.dir).toBe('h');
+    expect(js[0]!.x).toBeCloseTo(100);
+  });
+
+  it('junctionAt picks the nearest junction within the radius', () => {
+    const js = junctions(computeLayout(grid2x2(), PAGE, 0));
+    expect(junctionAt(js, 103, 152, 5)).toBe(js[0]);
+    expect(junctionAt(js, 110, 150, 5)).toBeNull();
   });
 });

@@ -35,19 +35,6 @@ test('dragging an edge resizes neighbours smoothly and keeps DOM nodes', async (
   expect(tagged).toBe(true);
 });
 
-test('aligned edges move together (table-like), unlinked with Alt', async ({ page }) => {
-  const [top, bottom] = [dividers(page, 'v').nth(0), dividers(page, 'v').nth(1)];
-  const s = center(await box(top));
-  await drag(page, s, { x: s.x + 40, y: s.y }, 8);
-  expect(Math.abs((await box(top)).x - (await box(bottom)).x)).toBeLessThan(1);
-
-  const s2 = center(await box(top));
-  await page.keyboard.down('Alt');
-  await drag(page, s2, { x: s2.x - 80, y: s2.y }, 8);
-  await page.keyboard.up('Alt');
-  expect((await box(bottom)).x - (await box(top)).x).toBeGreaterThan(60);
-});
-
 test('edges stop before a cell collapses', async ({ page }) => {
   const v = dividers(page, 'v').first();
   const s = center(await box(v));

@@ -11,8 +11,6 @@ export interface UiState {
   selectedFloatId: string | null;
   /** Cell waiting for a second tap to swap photos with. */
   swapFromCellId: string | null;
-  /** Move collinear edges together (table-like behaviour). */
-  linkEdges: boolean;
   /** Show the blue edge handles (edges stay draggable when hidden). */
   showHandles: boolean;
   preset: Preset;
@@ -55,7 +53,6 @@ export class Store {
     selectedCellId: null,
     selectedFloatId: null,
     swapFromCellId: null,
-    linkEdges: true,
     showHandles: loadPref('showHandles', true),
     preset: 'grid',
     exportDpi: 300,
