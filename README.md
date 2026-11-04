@@ -29,6 +29,8 @@ Edytor kolaży zdjęć działający w przeglądarce (telefon i komputer), z domy
   „Zapisz jako”, a przeglądarka pamięta ostatnio wybrany folder (osobno dla kolaży i szablonów).
   Można to wyłączyć opcją „Pytaj, gdzie zapisać”; w pozostałych przeglądarkach pliki trafiają do folderu pobierania.
 - Cofnij/ponów (Ctrl+Z, Ctrl+Shift+Z), skróty klawiszowe dla warstw (strzałki, Delete).
+- **Wskaźnik pracy** – podczas długich operacji (eksport, druk, zapis i otwieranie projektu, wczytywanie zdjęć)
+  w prawym dolnym rogu kręci się słonecznik z logo, a interfejs jest zablokowany do końca operacji.
 
 Cała geometria liczona jest w milimetrach strony, więc podgląd i eksport są identyczne niezależnie od rozdzielczości.
 

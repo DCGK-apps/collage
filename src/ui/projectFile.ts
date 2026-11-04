@@ -3,6 +3,7 @@ import { referencedIds } from './projectRefs';
 import type { Store } from '../store';
 import { saveFile, type SaveResult } from './saveFile';
 import { loadImage, type LoadedPhoto } from './images';
+import { withBusy } from './busy';
 
 /** Collect photo bytes for every photo the document uses. */
 async function collectAssets(store: Store): Promise<ProjectPhotoAsset[]> {
@@ -25,10 +26,16 @@ async function collectAssets(store: Store): Promise<ProjectPhotoAsset[]> {
 
 /** Save the whole collage as one .collage file (save dialog, share sheet on phones, or download). */
 export function saveProjectFile(store: Store): Promise<SaveResult> {
-  return saveFile(projectFileName(), 'collage', async () => {
-    const zip = packProject(store.doc, await collectAssets(store));
-    return new Blob([zip as BlobPart], { type: 'application/zip' });
-  }, { share: true });
+  return saveFile(
+    projectFileName(),
+    'collage',
+    () =>
+      withBusy('Zapisuję projekt…', async () => {
+        const zip = packProject(store.doc, await collectAssets(store));
+        return new Blob([zip as BlobPart], { type: 'application/zip' });
+      }),
+    { share: true },
+  );
 }
 
 /**
