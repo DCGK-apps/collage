@@ -1,6 +1,7 @@
 import './styles.css';
 import { rotateCrop, zoomAt } from './core/crop';
 import { createFloat, reorder, type ZMove } from './core/floats';
+import { randomGap, randomLayout } from './core/random';
 import { FORMATS, docPageSize, getFormat, pageSizePx } from './core/page';
 import {
   buildPreset,
@@ -262,7 +263,7 @@ $('#btn-orientation').addEventListener('click', () => {
 });
 
 // Presets
-$$('.preset-btn').forEach((b) =>
+$$('.preset-btn[data-preset]').forEach((b) =>
   b.addEventListener('click', () => {
     const preset = b.dataset.preset as Preset;
     store.ui.preset = preset;
@@ -275,6 +276,20 @@ $$('.preset-btn').forEach((b) =>
     store.ui.selectedCellId = null;
   }),
 );
+$('#btn-random').addEventListener('click', () => {
+  const gap = randomGap(Math.random);
+  store.edit((doc) => {
+    const cellsNow = listCells(doc.tree).map((c) => c.photoId);
+    const ids = cellsNow.length ? cellsNow : doc.library.slice();
+    doc.style.gapMm = gap;
+    doc.tree = randomLayout(ids, pageRect(doc), gap, Math.random);
+  });
+  store.ui.preset = 'random';
+  store.ui.selectedCellId = null;
+  vibrate(12);
+  toast(`Wylosowano układ · separatory ${gap} mm`);
+});
+
 $('#btn-equalize').addEventListener('click', () => {
   store.edit((doc) => equalize(doc.tree));
   toast('Wyrównano podziały');
@@ -491,7 +506,8 @@ function renderControls(): void {
   $<HTMLButtonElement>('#btn-redo').disabled = !store.history.canRedo;
   $$('#format-chips .chip').forEach((c) => c.classList.toggle('active', c.dataset.format === doc.formatId));
   $('#btn-orientation').textContent = doc.orientation === 'portrait' ? 'Pionowo ⟳' : 'Poziomo ⟳';
-  $$('.preset-btn').forEach((b) => b.classList.toggle('active', b.dataset.preset === ui.preset));
+  $$('.preset-btn[data-preset]').forEach((b) => b.classList.toggle('active', b.dataset.preset === ui.preset));
+  $('#btn-random').classList.toggle('active', ui.preset === 'random');
   $$('.color').forEach((c) => c.classList.toggle('active', c.dataset.color === doc.style.background));
   rngGap.value = String(doc.style.gapMm);
   rngRadius.value = String(doc.style.radiusMm);

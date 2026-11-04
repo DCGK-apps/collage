@@ -178,7 +178,9 @@ body[data-handles='hidden'] .divider:not(.active)::before { opacity: 0; }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .chip { height: 34px; padding: 0 11px; background: #1e293b; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
 .chip.active { background: var(--accent-soft); border-color: var(--accent); color: #e0e7ff; }
-.presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; }
+.random-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: #fde68a; border-color: rgba(251, 191, 36, 0.45); }
+.random-btn .icon { width: 16px; height: 16px; }
 .preset-btn { height: 36px; background: #1e293b; border: 1px solid var(--border); border-radius: 8px; color: #cbd5e1; font-size: 11px; font-weight: 600; cursor: pointer; padding: 0 4px; overflow: hidden; text-overflow: ellipsis; }
 .preset-btn.active { background: var(--accent-soft); border-color: var(--accent); color: #c7d2fe; }
 .check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1; }

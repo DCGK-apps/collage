@@ -245,8 +245,15 @@ export function smartFit(tree: LayoutNode | null, photos: Map<string, Photo>, pa
     const b = aspect(n.second);
     n.ratio = n.dir === 'v' ? a / (a + b) : (1 / a) / (1 / a + 1 / b);
   });
-  // Clamp top-down so every cell stays usable.
-  // Pre-order, re-computing after each parent so children see their final rect.
+  clampRatios(tree, page, gap);
+}
+
+/**
+ * Pull every divider into its allowed range so each cell keeps the minimum
+ * size. Pre-order, re-computing after each parent so children see their final rect.
+ */
+export function clampRatios(tree: LayoutNode | null, page: Rect, gap: number): void {
+  if (!tree) return;
   const ids = computeLayout(tree, page, gap).dividers.map((d) => d.id);
   for (const id of ids) {
     const d = computeLayout(tree, page, gap).dividers.find((x) => x.id === id);

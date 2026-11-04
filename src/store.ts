@@ -15,7 +15,8 @@ export interface UiState {
   linkEdges: boolean;
   /** Show the blue edge handles (edges stay draggable when hidden). */
   showHandles: boolean;
-  preset: Preset;
+  /** Active layout button ('random' after „Losuj”). */
+  preset: Preset | 'random';
   exportDpi: number;
 }
 
