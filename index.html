@@ -15,19 +15,19 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
 </head>
 <body data-mode="edges">
-  <header class="topbar">
+  <header class="topbar" data-testid="topbar">
     <div class="mode-switch" role="tablist" aria-label="Tryb edycji">
-      <button class="mode-btn active" data-mode="edges" data-testid="mode-edges" title="Przesuwaj krawędzie (dwuklik – obróć podział)">
+      <button class="mode-btn active" data-mode="edges" data-testid="mode-edges" title="Przesuwaj krawędzie (dwuklik – obróć podział)" aria-label="Krawędzie">
         <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg>
-        <span>Krawędzie</span>
+        <span class="btn-label">Krawędzie</span>
       </button>
-      <button class="mode-btn" data-mode="crop" data-testid="mode-crop" title="Kadruj i powiększaj zdjęcia">
+      <button class="mode-btn" data-mode="crop" data-testid="mode-crop" title="Kadruj i powiększaj zdjęcia" aria-label="Kadr">
         <svg class="icon" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
-        <span>Kadr</span>
+        <span class="btn-label">Kadr</span>
       </button>
-      <button class="mode-btn" data-mode="layers" data-testid="mode-layers" title="Swobodne zdjęcia na wierzchu">
+      <button class="mode-btn" data-mode="layers" data-testid="mode-layers" title="Swobodne zdjęcia na wierzchu" aria-label="Warstwy">
         <svg class="icon" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
-        <span>Warstwy</span>
+        <span class="btn-label">Warstwy</span>
       </button>
     </div>
     <div class="top-actions">
@@ -37,13 +37,13 @@
       <button class="icon-btn" id="btn-redo" data-testid="redo" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów">
         <svg class="icon" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
       </button>
-      <button class="btn btn-soft" id="btn-smart" title="Dopasuj podziały do proporcji zdjęć">
+      <button class="btn btn-soft" id="btn-smart" data-testid="smart" title="Dopasuj podziały do proporcji zdjęć" aria-label="Dopasuj">
         <svg class="icon" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-        <span class="hide-xs">Dopasuj</span>
+        <span class="btn-label">Dopasuj</span>
       </button>
-      <button class="btn btn-save" id="btn-open-export" data-testid="open-export">
+      <button class="btn btn-save" id="btn-open-export" data-testid="open-export" title="Zapisz, eksportuj, drukuj, otwórz projekt" aria-label="Zapisz">
         <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-        <span>Zapisz</span>
+        <span class="btn-label">Zapisz</span>
       </button>
     </div>
   </header>

@@ -74,10 +74,16 @@ button { font: inherit; color: inherit; }
 }
 .icon-btn:disabled { opacity: 0.35; cursor: default; }
 
-@media (max-width: 460px) {
-  .mode-btn span, .hide-xs { display: none; }
-  .mode-btn { padding: 7px 10px; }
-}
+/* When the top bar does not fit, labels are hidden and only icons remain
+   (decided by measuring, see fitTopbar in main.ts). */
+.topbar.compact .btn-label { display: none; }
+.topbar.compact .mode-btn { padding: 7px 10px; }
+.topbar.compact .btn { padding: 0 10px; }
+.topbar.tight { gap: 4px; padding-left: 6px; padding-right: 6px; }
+.topbar.tight .top-actions { gap: 4px; }
+.topbar.tight .mode-btn { padding: 7px 8px; }
+.topbar.tight .icon-btn { width: 32px; }
+.topbar.tight .btn { padding: 0 8px; }
 
 /* ---------------------------------------------------------- workspace */
 #workspace {
