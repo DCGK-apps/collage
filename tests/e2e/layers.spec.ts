@@ -61,9 +61,11 @@ test('layers do not block edges in edges mode', async ({ page }) => {
     return x > f.left && x < f.right && y > f.top && y < f.bottom;
   }, s);
   expect(under).toBe(true);
-  const r0 = (await getDoc(page)).tree.ratio;
+  // Measure what the user sees: the top-left photo gets taller (the layout tree
+  // may be rewritten when only part of the line is dragged).
+  const h0 = (await box(cells(page).first())).height;
   await drag(page, s, { x: s.x, y: s.y + 40 }, 6);
-  expect((await getDoc(page)).tree.ratio).toBeGreaterThan(r0);
+  expect((await box(cells(page).first())).height).toBeGreaterThan(h0 + 30);
 });
 
 test('delete removes the selected layer and undo restores it', async ({ page }) => {
