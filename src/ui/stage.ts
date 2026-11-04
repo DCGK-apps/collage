@@ -8,6 +8,9 @@ import {
   type Layout,
   type PickOptions,
   dividersAt,
+  junctionAt,
+  junctions,
+  type Junction,
   needsDirection,
   pickDivider,
   resolveDragPosition,
@@ -27,6 +30,8 @@ const PILL_HALF_PX = 21;
 const PILL_SLOP_PX = 8;
 /** Movement needed at a crossing before we decide which line is being dragged. */
 const DIRECTION_SLOP_PX = 4;
+/** Radius around a junction knob that grabs the whole line. */
+const JUNCTION_HIT_PX = 16;
 
 export interface StageCallbacks {
   onRequestPhotoForCell(cellId: string): void;
@@ -65,6 +70,8 @@ export class Stage {
   private pageSize: Size = { w: 210, h: 297 };
   private lastDividerTap: { id: string; time: number } | null = null;
   private activeDividerIds = new Set<string>();
+  private junctionEls = new Map<string, HTMLDivElement>();
+  private junctionList: Junction[] = [];
 
   constructor(
     private readonly workspace: HTMLElement,
@@ -165,6 +172,33 @@ export class Stage {
     }
   }
 
+  /** Knobs where collinear segments meet: grabbing one moves the whole line. */
+  private renderJunctions(): void {
+    const s = this.scale;
+    this.junctionList = junctions(this.layout);
+    const seen = new Set<string>();
+    for (const j of this.junctionList) {
+      const key = [...j.ids].sort().join('|');
+      seen.add(key);
+      let node = this.junctionEls.get(key);
+      if (!node) {
+        node = el('div', 'junction');
+        node.dataset.testid = 'junction';
+        this.dividersLayer.append(node);
+        this.junctionEls.set(key, node);
+      }
+      node.dataset.dir = j.dir;
+      node.classList.toggle('active', j.ids.every((id) => this.activeDividerIds.has(id)));
+      node.style.transform = `translate(${j.x * s}px, ${j.y * s}px) translate(-50%, -50%)`;
+    }
+    for (const [key, node] of this.junctionEls) {
+      if (!seen.has(key)) {
+        node.remove();
+        this.junctionEls.delete(key);
+      }
+    }
+  }
+
   private renderDividers(): void {
     const s = this.scale;
     const seen = new Set<string>();
@@ -202,6 +236,7 @@ export class Stage {
         this.dividerEls.delete(id);
       }
     }
+    this.renderJunctions();
   }
 
   private renderFloats(): void {
@@ -310,7 +345,10 @@ export class Stage {
 
       target.setPointerCapture(e.pointerId);
       const start = { x: e.clientX, y: e.clientY };
-      const linked = this.store.ui.linkEdges && !e.altKey;
+      // A segment moves on its own; the knob where segments meet moves the whole
+      // aligned line. Alt (desktop) flips this.
+      const atJunction = !!junctionAt(this.junctionList, p.x, p.y, JUNCTION_HIT_PX / this.scale);
+      const linked = atJunction !== e.altKey;
       let session: DragSession | null = null;
       let moved = false;
 

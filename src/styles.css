@@ -12,12 +12,14 @@
   --divider-hit: 22px;
   --handle: 18px;
   --hint-space: 26px;
+  --junction: 14px;
 }
 
 @media (pointer: coarse) {
   :root {
     --divider-hit: 36px;
     --handle: 30px;
+    --junction: 18px;
   }
 }
 
@@ -121,6 +123,13 @@ body:not([data-mode='edges']) .dividers-layer { display: none; }
 .divider.h .pill { height: 6px; width: min(42px, 60%); }
 .divider.active .pill { background: var(--edge-active); transform: scale(1.35); box-shadow: 0 0 14px var(--edge-active); }
 .divider.active::before { background: var(--edge-active); opacity: 1; }
+
+/* junction knobs: where collinear segments meet – grab to move the whole line */
+.junction { width: var(--junction); height: var(--junction); border-radius: 50%; background: #0b1120; border: 3px solid var(--edge); box-shadow: 0 0 8px rgba(96, 165, 250, 0.8), 0 1px 3px rgba(0, 0, 0, 0.5); pointer-events: none; z-index: 2; transition: transform 0.12s; }
+.junction.active { border-color: var(--edge-active); background: var(--edge-active); box-shadow: 0 0 14px var(--edge-active); }
+body[data-handles='hidden'] .junction:not(.active) { visibility: hidden; }
+.note { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.junction-sample { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #0b1120; border: 3px solid var(--edge); }
 
 /* floats */
 .floats-layer { z-index: 20; pointer-events: none; }

@@ -97,7 +97,7 @@ function addAsLayers(ids: string[]): void {
 /* ================================================================ modes */
 
 const HINTS: Record<Mode, string> = {
-  edges: 'Przeciągnij krawędź · dwuklik na krawędzi obraca podział',
+  edges: 'Przeciągnij krawędź · kropka na skrzyżowaniu przesuwa całą linię · dwuklik obraca',
   crop: 'Przeciągnij zdjęcie · szczypnij lub kółko myszy, aby przybliżyć',
   layers: 'Przeciągnij warstwę · uchwyty: rozmiar i obrót',
 };
@@ -297,9 +297,6 @@ $('#btn-random').addEventListener('click', () => {
 $('#btn-equalize').addEventListener('click', () => {
   store.edit((doc) => equalize(doc.tree));
   toast('Wyrównano podziały');
-});
-$<HTMLInputElement>('#chk-link').addEventListener('change', (e) => {
-  store.ui.linkEdges = (e.target as HTMLInputElement).checked;
 });
 
 // Style
