@@ -276,3 +276,33 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border-radius
   #print-area { display: block !important; }
   #print-area img { display: block; }
 }
+
+/* ---------------------------------------------------------- busy indicator */
+/* Blocks the whole interface during long operations; the sunflower from the icon spins
+   in the bottom-right corner. Only transform/opacity are animated, so the browser keeps
+   them running on the compositor even while the main thread renders the export. */
+#busy { position: fixed; inset: 0; z-index: 200; cursor: progress; background: rgba(8, 12, 20, 0); animation: busy-dim 0.25s ease 0.15s forwards; touch-action: none; }
+#busy .busy-pill {
+  position: absolute; right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px;
+  background: #1e293b; border: 1px solid rgba(251, 191, 36, 0.5); border-radius: 99px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  font-size: 12px; font-weight: 700; color: #fde68a; white-space: nowrap;
+  opacity: 0; transform: translateY(8px); animation: busy-in 0.2s ease 0.1s forwards;
+}
+#busy .busy-flower { width: 44px; height: 44px; animation: busy-breathe 1.6s ease-in-out infinite; will-change: transform; }
+#busy .busy-spin { width: 100%; height: 100%; animation: busy-spin 2.4s linear infinite; will-change: transform; }
+#busy svg { display: block; width: 100%; height: 100%; }
+@keyframes busy-dim { to { background: rgba(8, 12, 20, 0.35); } }
+@keyframes busy-in { to { opacity: 1; transform: none; } }
+@keyframes busy-spin { to { transform: rotate(360deg); } }
+/* Affine "breathing": slight scale + skew, so the flower sways as it turns. */
+@keyframes busy-breathe {
+  0%, 100% { transform: scale(0.9) skewX(0deg); }
+  25% { transform: scale(1.04) skewX(-5deg); }
+  50% { transform: scale(0.96) skewX(0deg); }
+  75% { transform: scale(1.04) skewX(5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #busy .busy-flower { animation: none; }
+  #busy .busy-spin { animation-duration: 6s; }
+}

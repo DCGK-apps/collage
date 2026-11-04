@@ -27,6 +27,7 @@ import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderTo
 import { loadDemoPhotos, loadFiles, type LoadedPhoto } from './ui/images';
 import { Stage, vibrate } from './ui/stage';
 import { openProjectFile, ProjectError, saveProjectFile } from './ui/projectFile';
+import { isBusy, withBusy } from './ui/busy';
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector<T>(sel)!;
 const $$ = <T extends HTMLElement = HTMLElement>(sel: string): T[] => [...document.querySelectorAll<T>(sel)];
@@ -356,7 +357,7 @@ $<HTMLInputElement>('#color-custom').addEventListener('change', (e) =>
 async function onFiles(input: HTMLInputElement, handler: (items: LoadedPhoto[]) => void): Promise<void> {
   const files = input.files;
   if (!files || !files.length) return;
-  const items = await loadFiles(files);
+  const items = await withBusy(files.length > 1 ? `Wczytuję zdjęcia (${files.length})…` : 'Wczytuję zdjęcie…', () => loadFiles(files));
   input.value = '';
   if (!items.length) {
     toast('Nie udało się wczytać zdjęć');
@@ -437,9 +438,15 @@ function savedToast(r: SaveResult, what: string): void {
   else if (r.how !== 'cancelled') toast(`Pobrano ${what}`);
 }
 const exportImage = (name: string, type: string, quality?: number) =>
-  saveFile(name, 'collage', () => canvasToBlob(renderToCanvas(store, store.ui.exportDpi).canvas, type, quality));
+  saveFile(name, 'collage', () =>
+    withBusy(`Tworzę ${name.split('.').pop()!.toUpperCase()}…`, () =>
+      canvasToBlob(renderToCanvas(store, store.ui.exportDpi).canvas, type, quality),
+    ),
+  );
 $('#btn-export-pdf').addEventListener('click', () =>
-  guarded(async () => savedToast(await saveFile('kolaz.pdf', 'collage', () => exportPdf(store, store.ui.exportDpi)), 'PDF')),
+  guarded(async () =>
+    savedToast(await saveFile('kolaz.pdf', 'collage', () => withBusy('Tworzę PDF…', () => exportPdf(store, store.ui.exportDpi))), 'PDF'),
+  ),
 );
 $('#btn-export-png').addEventListener('click', () =>
   guarded(async () => savedToast(await exportImage('kolaz.png', 'image/png'), 'PNG')),
@@ -467,7 +474,7 @@ $<HTMLInputElement>('#file-project').addEventListener('change', async (e) => {
   input.value = '';
   if (!file) return;
   try {
-    const { missing } = await openProjectFile(file, store, registerPhotos);
+    const { missing } = await withBusy('Otwieram projekt…', () => openProjectFile(file, store, registerPhotos));
     modal.classList.remove('open');
     toast(missing ? `Otwarto projekt · brakujące zdjęcia: ${missing}` : 'Otwarto projekt – „Cofnij” wraca do poprzedniego');
   } catch (err) {
@@ -478,7 +485,9 @@ $<HTMLInputElement>('#file-project').addEventListener('change', async (e) => {
 $('#btn-print').addEventListener('click', () => guarded(() => printDoc(store, store.ui.exportDpi)));
 $('#btn-share').addEventListener('click', () =>
   guarded(async () => {
-    const blob = await canvasToBlob(renderToCanvas(store, store.ui.exportDpi).canvas, 'image/jpeg', 0.93);
+    const blob = await withBusy('Przygotowuję obraz…', () =>
+      canvasToBlob(renderToCanvas(store, store.ui.exportDpi).canvas, 'image/jpeg', 0.93),
+    );
     const file = new File([blob], 'kolaz.jpg', { type: 'image/jpeg' });
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({ files: [file], title: 'Kolaż' }).catch(() => undefined);
@@ -492,6 +501,10 @@ $('#btn-share').addEventListener('click', () =>
 /* ================================================================ keyboard */
 
 window.addEventListener('keydown', (e) => {
+  if (isBusy()) {
+    e.preventDefault();
+    return;
+  }
   const tag = (e.target as HTMLElement).tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
   const mod = e.ctrlKey || e.metaKey;
@@ -699,7 +712,7 @@ async function init(): Promise<void> {
   let restored = false;
   if (storage) {
     try {
-      const saved = await restoreProject(storage);
+      const saved = await withBusy('Wczytuję kolaż…', () => restoreProject(storage!));
       if (saved) {
         registerPhotos(saved.photos);
         store.doc = saved.doc;
@@ -733,7 +746,7 @@ $('#btn-new-project').addEventListener('click', () => {
 });
 
 // Test/debug hook (used by the e2e suite).
-(window as unknown as { __collage: unknown }).__collage = { store, stage, flushSave: () => autosaver?.flush() };
+(window as unknown as { __collage: unknown }).__collage = { store, stage, withBusy, flushSave: () => autosaver?.flush() };
 
 store.flush();
 void init();

@@ -2,6 +2,7 @@ import { buildPdf } from '../core/pdf';
 import { docPageSize, pageSizePx } from '../core/page';
 import { drawDoc, type Ctx } from '../core/render';
 import type { Store } from '../store';
+import { withBusy } from './busy';
 
 /** Safe canvas area for mobile Safari and low-memory devices. */
 export const MAX_CANVAS_PIXELS = 16_000_000;
@@ -59,8 +60,9 @@ export function downloadBlob(blob: Blob, name: string): void {
 
 /** Print at the physical page size using a dedicated print stylesheet. */
 export async function printDoc(store: Store, dpi: number): Promise<void> {
-  const { canvas } = renderToCanvas(store, dpi);
-  const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
+  const blob = await withBusy('Przygotowuję wydruk…', () =>
+    canvasToBlob(renderToCanvas(store, dpi).canvas, 'image/jpeg', 0.95),
+  );
   const url = URL.createObjectURL(blob);
   const page = docPageSize(store.doc);
   const area = document.getElementById('print-area')!;
