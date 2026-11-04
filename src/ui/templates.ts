@@ -13,7 +13,7 @@ import {
 } from '../core/templates';
 import { TemplateStore, type StoredTemplate } from '../templates/store';
 import type { Store } from '../store';
-import { downloadBlob } from './export';
+import { saveFile } from './saveFile';
 
 interface Entry {
   key: string;
@@ -23,19 +23,9 @@ interface Entry {
 
 const BUILTIN: Entry[] = parseTemplateFile(builtinPack).templates.map((t) => ({ key: templateKey(t), template: t, builtin: true }));
 
-/** Share the file on phones (system share sheet), download it elsewhere. */
-async function offerFile(blob: Blob, name: string): Promise<void> {
-  const file = new File([blob], name, { type: 'application/json' });
-  const coarse = window.matchMedia?.('(pointer: coarse)').matches;
-  if (coarse && navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: name });
-      return;
-    } catch {
-      /* cancelled or unsupported – fall back to download */
-    }
-  }
-  downloadBlob(blob, name);
+/** Save dialog where supported, share sheet on phones, download elsewhere. */
+function offerFile(blob: Blob, name: string): Promise<unknown> {
+  return saveFile(name, 'template', () => blob, { share: true }).catch((err) => console.error(err));
 }
 
 const jsonBlob = (data: unknown) => new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' });

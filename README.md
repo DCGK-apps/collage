@@ -25,6 +25,9 @@ Edytor kolaży zdjęć działający w przeglądarce (telefon i komputer), z domy
 - **Aplikacja na telefon (PWA)** – instalacja na ekranie głównym, praca offline, pasek „Dostępna nowa wersja – Odśwież”.
 - Formaty: A4 (domyślny), A3, A5, 10×15, 13×18, 1:1, 4:5, 9:16 – pion/poziom.
 - Eksport: **PDF w rozmiarze strony**, PNG, JPG (150/300 DPI), drukowanie, udostępnianie.
+- **Wybór folderu zapisu** – w Chrome, Edge i innych przeglądarkach na Chromium „Zapisz” otwiera okno
+  „Zapisz jako”, a przeglądarka pamięta ostatnio wybrany folder (osobno dla kolaży i szablonów).
+  Można to wyłączyć opcją „Pytaj, gdzie zapisać”; w pozostałych przeglądarkach pliki trafiają do folderu pobierania.
 - Cofnij/ponów (Ctrl+Z, Ctrl+Shift+Z), skróty klawiszowe dla warstw (strzałki, Delete).
 
 Cała geometria liczona jest w milimetrach strony, więc podgląd i eksport są identyczne niezależnie od rozdzielczości.
