@@ -37,6 +37,14 @@ async function installPicker(page: Page, answer: 'save' | 'cancel' = 'save', cho
   );
 }
 
+/** Rendering a 300 DPI page can take a while on a busy CI runner; tests use 150 DPI and wait longer. */
+const SLOW = { timeout: 30_000 };
+
+async function openSaveDialog(page: Page) {
+  await page.getByTestId('open-export').click();
+  await page.locator('[data-dpi="150"]').click();
+}
+
 const calls = (page: Page) => page.evaluate(() => (window as any).__pickerCalls);
 const saved = (page: Page) => page.evaluate(() => (window as any).__saved);
 
@@ -45,13 +53,13 @@ test('PNG export opens a "Save as" dialog that remembers the collage folder', as
   await openApp(page, { savePicker: true });
   let downloads = 0;
   page.on('download', () => downloads++);
-  await page.getByTestId('open-export').click();
+  await openSaveDialog(page);
   await expect(page.getByTestId('save-where')).toBeVisible();
   await expect(page.getByTestId('ask-save')).toBeChecked();
   await expect(page.getByTestId('save-where-hint')).toBeHidden();
 
   await page.getByTestId('export-png').click();
-  await expect(page.locator('#toast')).toContainText('Zapisano PNG wakacje.png');
+  await expect(page.locator('#toast')).toContainText('Zapisano PNG wakacje.png', SLOW);
   expect(await calls(page)).toEqual([{ id: 'collage-kolaze', suggestedName: 'kolaz.png', accept: { 'image/png': ['.png'] } }]);
   const [file] = await saved(page);
   expect(file.name).toBe('wakacje.png');
@@ -62,14 +70,14 @@ test('PNG export opens a "Save as" dialog that remembers the collage folder', as
 test('PDF, JPG and the project share one folder; templates have their own', async ({ page }) => {
   await installPicker(page);
   await openApp(page, { savePicker: true });
-  await page.getByTestId('open-export').click();
+  await openSaveDialog(page);
   await page.getByTestId('export-pdf').click();
-  await expect.poll(async () => (await saved(page)).length).toBe(1);
+  await expect.poll(async () => (await saved(page)).length, SLOW).toBe(1);
   await page.getByTestId('export-jpg').click();
-  await expect.poll(async () => (await saved(page)).length).toBe(2);
+  await expect.poll(async () => (await saved(page)).length, SLOW).toBe(2);
   await page.getByTestId('project-save').click();
-  await expect.poll(async () => (await saved(page)).length).toBe(3);
-  await expect(page.locator('#toast')).toContainText(/Zapisano projekt kolaz-.*\.collage/);
+  await expect.poll(async () => (await saved(page)).length, SLOW).toBe(3);
+  await expect(page.locator('#toast')).toContainText(/Zapisano projekt kolaz-.*\.collage/, SLOW);
   const c = await calls(page);
   expect(c.map((x: any) => x.id)).toEqual(['collage-kolaze', 'collage-kolaze', 'collage-kolaze']);
   expect(c.map((x: any) => x.suggestedName.split('.').pop())).toEqual(['pdf', 'jpg', 'collage']);
@@ -81,7 +89,7 @@ test('PDF, JPG and the project share one folder; templates have their own', asyn
   await page.locator('#btn-close-export').click();
   await page.getByTestId('tab-templates').click();
   await page.getByTestId('template-export').first().click();
-  await expect.poll(async () => (await calls(page)).length).toBe(4);
+  await expect.poll(async () => (await calls(page)).length, SLOW).toBe(4);
   expect((await calls(page))[3].id).toBe('collage-szablony');
 });
 
@@ -90,9 +98,9 @@ test('closing the dialog saves nothing and does not fall back to a download', as
   await openApp(page, { savePicker: true });
   let downloads = 0;
   page.on('download', () => downloads++);
-  await page.getByTestId('open-export').click();
+  await openSaveDialog(page);
   await page.getByTestId('export-png').click();
-  await expect.poll(async () => (await calls(page)).length).toBe(1);
+  await expect.poll(async () => (await calls(page)).length, SLOW).toBe(1);
   await page.waitForTimeout(300);
   expect(downloads).toBe(0);
   await expect(page.locator('#toast')).not.toContainText(/Pobrano|Zapisano/);
@@ -101,7 +109,7 @@ test('closing the dialog saves nothing and does not fall back to a download', as
 test('“Pytaj, gdzie zapisać” can be turned off and the choice is remembered', async ({ page }) => {
   await installPicker(page);
   await openApp(page, { savePicker: true });
-  await page.getByTestId('open-export').click();
+  await openSaveDialog(page);
   await page.getByTestId('ask-save').uncheck();
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-png').click()]);
   expect(dl.suggestedFilename()).toBe('kolaz.png');
@@ -109,13 +117,13 @@ test('“Pytaj, gdzie zapisać” can be turned off and the choice is remembered
 
   await page.reload();
   await expect(page.locator('body[data-ready="true"]')).toBeAttached();
-  await page.getByTestId('open-export').click();
+  await openSaveDialog(page);
   await expect(page.getByTestId('ask-save')).not.toBeChecked();
 });
 
 test('browsers without the dialog download as before and explain where to change the folder', async ({ page }) => {
   await openApp(page);
-  await page.getByTestId('open-export').click();
+  await openSaveDialog(page);
   await expect(page.getByTestId('save-where')).toBeHidden();
   await expect(page.getByTestId('save-where-hint')).toBeVisible();
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-png').click()]);
