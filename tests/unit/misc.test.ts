@@ -1,7 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { createDoc } from '../../src/core/doc';
 import { History } from '../../src/core/history';
-import { DEFAULT_FORMAT_ID, docPageSize, fitScale, getFormat, pageSizeMm, pageSizePx } from '../../src/core/page';
+import {
+  CUSTOM_FORMAT_ID,
+  CUSTOM_MAX_MM,
+  CUSTOM_MIN_MM,
+  DEFAULT_FORMAT_ID,
+  docPageSize,
+  fitScale,
+  getFormat,
+  mmToPx,
+  normalizeCustom,
+  pageSizeMm,
+  pageSizePx,
+  pxToMm,
+  readCustom,
+} from '../../src/core/page';
 import { buildPdf, mmToPt } from '../../src/core/pdf';
 
 describe('page formats', () => {
@@ -19,6 +33,26 @@ describe('page formats', () => {
 
   it('landscape swaps dimensions', () => {
     expect(pageSizeMm('a4', 'landscape')).toEqual({ w: 297, h: 210 });
+  });
+
+  it('custom format uses doc.customMm and follows orientation', () => {
+    const doc = createDoc();
+    doc.formatId = CUSTOM_FORMAT_ID;
+    doc.customMm = { w: 91.44, h: 162.56 };
+    expect(docPageSize(doc)).toEqual({ w: 91.44, h: 162.56 });
+    expect(pageSizePx(docPageSize(doc), 300)).toEqual({ w: 1080, h: 1920 });
+    doc.orientation = 'landscape';
+    expect(docPageSize(doc)).toEqual({ w: 162.56, h: 91.44 });
+    expect(getFormat(CUSTOM_FORMAT_ID, doc.customMm).label).toBe('Własny');
+  });
+
+  it('custom size is clamped, rounded and portrait-normalised', () => {
+    expect(normalizeCustom({ w: 300, h: 100 })).toEqual({ w: 100, h: 300 });
+    expect(normalizeCustom({ w: 1, h: 99999 })).toEqual({ w: CUSTOM_MIN_MM, h: CUSTOM_MAX_MM });
+    expect(normalizeCustom({ w: 10.123, h: 20 })).toEqual({ w: 10.12, h: 20 });
+    expect(readCustom({ w: 'x', h: 1 })).toBeUndefined();
+    expect(readCustom(null)).toBeUndefined();
+    expect(pxToMm(mmToPx(50.8, 300), 300)).toBeCloseTo(50.8);
   });
 
   it('unknown format falls back to A4', () => {

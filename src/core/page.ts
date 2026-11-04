@@ -23,24 +23,59 @@ export const FORMATS: readonly PageFormat[] = [
 
 export const DEFAULT_FORMAT_ID = 'a4';
 
-export function getFormat(id: string): PageFormat {
+/** User-defined page size; the dimensions live in `Doc.customMm`. */
+export const CUSTOM_FORMAT_ID = 'custom';
+export const CUSTOM_MIN_MM = 10;
+export const CUSTOM_MAX_MM = 2000;
+export const DEFAULT_CUSTOM_MM: Size = { w: 200, h: 300 };
+
+export function getFormat(id: string, custom?: Size): PageFormat {
+  if (id === CUSTOM_FORMAT_ID) {
+    const c = normalizeCustom(custom ?? DEFAULT_CUSTOM_MM);
+    return { id, label: 'Własny', widthMm: c.w, heightMm: c.h, print: true };
+  }
   return FORMATS.find((f) => f.id === id) ?? FORMATS[0]!;
 }
 
-export function pageSizeMm(formatId: string, orientation: Orientation): Size {
-  const f = getFormat(formatId);
+/** Clamp to sane limits, round to 0.01 mm and order as portrait (w <= h). */
+export function normalizeCustom(s: Size): Size {
+  const fix = (v: number) =>
+    Math.round(Math.min(CUSTOM_MAX_MM, Math.max(CUSTOM_MIN_MM, Number.isFinite(v) ? v : CUSTOM_MIN_MM)) * 100) / 100;
+  const a = fix(s.w);
+  const b = fix(s.h);
+  return { w: Math.min(a, b), h: Math.max(a, b) };
+}
+
+/** Validate a stored custom size; undefined when it is not usable. */
+export function readCustom(raw: unknown): Size | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const { w, h } = raw as Record<string, unknown>;
+  if (typeof w !== 'number' || typeof h !== 'number' || !Number.isFinite(w) || !Number.isFinite(h)) return undefined;
+  return normalizeCustom({ w, h });
+}
+
+export function pageSizeMm(formatId: string, orientation: Orientation, custom?: Size): Size {
+  const f = getFormat(formatId, custom);
   const w = Math.min(f.widthMm, f.heightMm);
   const h = Math.max(f.widthMm, f.heightMm);
   return orientation === 'portrait' ? { w, h } : { w: h, h: w };
 }
 
 export function docPageSize(doc: Doc): Size {
-  return pageSizeMm(doc.formatId, doc.orientation);
+  return pageSizeMm(doc.formatId, doc.orientation, doc.customMm);
+}
+
+export function mmToPx(mm: number, dpi: number): number {
+  return Math.round((mm / 25.4) * dpi);
+}
+
+export function pxToMm(px: number, dpi: number): number {
+  return (px / dpi) * 25.4;
 }
 
 /** Pixel size of the page at the given DPI (rounded like print drivers do). */
 export function pageSizePx(size: Size, dpi: number): Size {
-  return { w: Math.round((size.w / 25.4) * dpi), h: Math.round((size.h / 25.4) * dpi) };
+  return { w: mmToPx(size.w, dpi), h: mmToPx(size.h, dpi) };
 }
 
 /** Fit a page into an available box, returning px-per-mm scale. */

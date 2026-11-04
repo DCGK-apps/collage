@@ -1,4 +1,5 @@
 import { createDoc } from './doc';
+import { readCustom } from './page';
 import { sha256Hex } from './sha256';
 import { createZip, readZip, type InflateRaw } from './zip';
 import type { Doc, LayoutNode } from './types';
@@ -125,6 +126,7 @@ export function sanitizeProjectDoc(raw: unknown, available: Set<string>): Doc {
   const s = raw.style;
   const doc: Doc = {
     formatId: typeof raw.formatId === 'string' ? raw.formatId : base.formatId,
+    ...(readCustom(raw.customMm) ? { customMm: readCustom(raw.customMm) } : {}),
     orientation: raw.orientation === 'landscape' ? 'landscape' : 'portrait',
     style: {
       gapMm: isNum(s.gapMm) ? s.gapMm : base.style.gapMm,
