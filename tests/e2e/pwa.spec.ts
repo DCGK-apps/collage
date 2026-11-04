@@ -46,7 +46,7 @@ test('app is called Collage and has a valid manifest with the icons', async ({ p
     expect(`${w}x${h}`).toBe(icon.sizes);
   }
   expect(manifest.icons.some((i: any) => i.purpose === 'maskable')).toBe(true);
-  expect(pngSize(Buffer.from(await (await request.get('/icons/apple-touch-icon.png')).body()))).toEqual({ w: 180, h: 180 });
+  expect(pngSize(Buffer.from(await (await request.get('/icons/apple-touch-icon-v2.png')).body()))).toEqual({ w: 180, h: 180 });
 });
 
 test('works offline after the first visit', async ({ page, context }) => {

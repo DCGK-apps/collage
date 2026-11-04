@@ -26,7 +26,19 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  // Manifest and icons: network first. Android reads them to build and update
+  // the home-screen icon; serving an old release's copies from the cache would
+  // keep a stale icon. Offline, the cached copy is still used.
+  if (url.pathname.endsWith('.webmanifest') || url.pathname.includes('/icons/')) {
+    event.respondWith(
+      fetch(req, { cache: 'no-cache' }).catch(() =>
+        caches.open(CACHE).then((c) => c.match(req, { ignoreSearch: true })).then((hit) => hit || Response.error()),
+      ),
+    );
+    return;
+  }
   // App shell: serve the cached version of this release; the page itself is the
   // entry point, so navigations fall back to the cached index.html.
   event.respondWith(
