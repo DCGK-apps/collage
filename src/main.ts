@@ -133,6 +133,22 @@ $('#btn-handles').addEventListener('click', toggleHandles);
 
 /* ================================================================ header */
 
+// Show text labels only when everything fits; otherwise icons only, and on very
+// narrow screens tighter spacing as well. Measured, so it works for any width,
+// font size or orientation.
+const topbar = $('.topbar');
+function fitTopbar(): void {
+  topbar.classList.remove('compact', 'tight');
+  if (topbar.scrollWidth > topbar.clientWidth + 1) topbar.classList.add('compact');
+  if (topbar.scrollWidth > topbar.clientWidth + 1) topbar.classList.add('tight');
+}
+// Watch the bar and its contents: content grows when the text size changes.
+const topbarObserver = new ResizeObserver(fitTopbar);
+for (const el of [topbar, ...Array.from(topbar.children)]) topbarObserver.observe(el);
+window.addEventListener('resize', fitTopbar);
+void document.fonts?.ready.then(fitTopbar);
+fitTopbar();
+
 $('#btn-undo').addEventListener('click', () => store.undo());
 $('#btn-redo').addEventListener('click', () => store.redo());
 $('#btn-smart').addEventListener('click', () => {
