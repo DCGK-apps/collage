@@ -39,6 +39,25 @@ Technicznie: `public/manifest.webmanifest`, ikony w `public/icons/`, service wor
 generowany przy buildzie z `src/sw-template.js` (wersja = hash opublikowanych plików),
 logika instalacji i aktualizacji w `src/pwa.ts`.
 
+## Plik projektu `.collage`
+
+**Zapisz → Projekt → „Zapisz projekt (.collage)”** zapisuje cały kolaż ze zdjęciami w jednym pliku
+(na telefonie przez *Udostępnij*); **„Otwórz projekt…”** wczytuje go na dowolnym urządzeniu (Cofnij wraca).
+
+Plik to archiwum ZIP:
+
+```
+project.json            dokument + lista zdjęć
+photos/<sha256>.<ext>   każde zdjęcie raz, nazwane skrótem treści
+```
+
+Ścieżki w `project.json` są względne wobec korzenia archiwum (zawsze `/`), np.
+`"path": "photos/3fa9…c2.jpg"`. Nic nie wskazuje poza plik, więc projekt można kopiować i wysyłać.
+Przy otwieraniu: akceptowane są tylko ścieżki `photos/<hash>.<ext>`, zgodność treści z hashem jest
+sprawdzana, a brakujące lub uszkodzone zdjęcie zostawia pustą komórkę zamiast psuć cały projekt.
+Archiwum spakowane ponownie przez system (kompresja deflate) też się otworzy.
+Kod: `src/core/project.ts`, `src/core/zip.ts`, `src/core/sha256.ts`.
+
 ## Uruchomienie
 
 ```bash

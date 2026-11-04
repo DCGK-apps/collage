@@ -21,6 +21,7 @@ import { Store, loadPref, savePref, type Mode } from './store';
 import { downloadBlob, canvasToBlob, effectiveDpi, exportPdf, printDoc, renderToCanvas } from './ui/export';
 import { loadDemoPhotos, loadFiles, type LoadedPhoto } from './ui/images';
 import { Stage, vibrate } from './ui/stage';
+import { openProjectFile, ProjectError, saveProjectFile } from './ui/projectFile';
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector<T>(sel)!;
 const $$ = <T extends HTMLElement = HTMLElement>(sel: string): T[] => [...document.querySelectorAll<T>(sel)];
@@ -417,6 +418,26 @@ $('#btn-export-jpg').addEventListener('click', () =>
     toast('Pobrano JPG');
   }),
 );
+$('#btn-project-save').addEventListener('click', () =>
+  guarded(async () => {
+    const name = await saveProjectFile(store);
+    toast(`Zapisano projekt ${name}`);
+  }),
+);
+$<HTMLInputElement>('#file-project').addEventListener('change', async (e) => {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+  try {
+    const { missing } = await openProjectFile(file, store, registerPhotos);
+    modal.classList.remove('open');
+    toast(missing ? `Otwarto projekt · brakujące zdjęcia: ${missing}` : 'Otwarto projekt – „Cofnij” wraca do poprzedniego');
+  } catch (err) {
+    console.error(err);
+    toast(err instanceof ProjectError ? err.message : 'Nie udało się otworzyć projektu');
+  }
+});
 $('#btn-print').addEventListener('click', () => guarded(() => printDoc(store, store.ui.exportDpi)));
 $('#btn-share').addEventListener('click', () =>
   guarded(async () => {
