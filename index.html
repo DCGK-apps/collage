@@ -81,7 +81,19 @@
     <div id="sheet-body">
       <div class="panel active" id="tab-layout">
         <div>
-          <div class="label"><span>Format</span><span class="label-actions"><button class="link" id="btn-new-project" data-testid="new-project" title="Zacznij od pustego układu (Cofnij przywraca)">Nowy kolaż</button><button class="link" id="btn-orientation" data-testid="orientation">Obróć stronę</button></span></div>
+          <div class="row project-row">
+            <button class="btn btn-dark grow" id="btn-new-project" data-testid="new-project" title="Zacznij od pustego układu (Cofnij przywraca)">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="12" y2="18"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
+              <span>Nowy kolaż</span>
+            </button>
+            <label class="btn btn-dark grow" for="file-project" data-testid="open-project-quick" title="Otwórz zapisany plik .collage">
+              <svg class="icon" viewBox="0 0 24 24"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>
+              <span>Otwórz kolaż…</span>
+            </label>
+          </div>
+        </div>
+        <div>
+          <div class="label"><span>Format</span><button class="link" id="btn-orientation" data-testid="orientation">Obróć stronę</button></div>
           <div class="chips" id="format-chips"></div>
         </div>
         <div>
@@ -205,7 +217,7 @@
 
   <div class="modal" id="export-modal" data-testid="export-modal">
     <div class="modal-box">
-      <div class="modal-title"><span>Eksport kolażu</span><button class="icon-btn" id="btn-close-export" aria-label="Zamknij">✕</button></div>
+      <div class="modal-title"><span>Zapisz i otwórz</span><button class="icon-btn" id="btn-close-export" aria-label="Zamknij">✕</button></div>
       <p class="muted" id="export-info"></p>
       <div>
         <div class="label"><span>Rozdzielczość</span></div>
